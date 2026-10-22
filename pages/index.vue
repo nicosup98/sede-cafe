@@ -1051,6 +1051,189 @@
             </div>
           </div>
         </div>
+
+        <!-- MÓDULO DE RECORDATORIOS AUTOMÁTICOS DE CAFÉ (ADMIN) -->
+        <div v-if="isAdmin" class="card bg-base-100 shadow-sm border border-base-300">
+          <div class="card-body p-5 sm:p-6 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-base-200 pb-3">
+              <div>
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                  <span>⏰ Notificaciones Automáticas para el Encargado del Café</span>
+                  <span class="badge badge-sm" :class="reminderSettings.config.reminder_enabled ? 'badge-success' : 'badge-ghost'">
+                    {{ reminderSettings.config.reminder_enabled ? 'Activado' : 'Desactivado' }}
+                  </span>
+                </h3>
+                <p class="text-xs text-base-content/85">
+                  Configura el aviso push automático para notificar al teléfono de quien le toque hacer el café en su día asignado.
+                </p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-1">
+              <!-- Formulario de Configuración -->
+              <div class="lg:col-span-2 space-y-4">
+                <div class="form-control">
+                  <label class="label cursor-pointer justify-start gap-3 py-1">
+                    <input
+                      v-model="reminderSettings.config.reminder_enabled"
+                      type="checkbox"
+                      class="toggle toggle-primary toggle-sm"
+                    />
+                    <span class="label-text text-sm font-semibold">
+                      Habilitar recordatorio automático del día al encargado
+                    </span>
+                  </label>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="form-control">
+                    <label class="label py-1">
+                      <span class="label-text text-xs font-semibold">Hora de la notificación (Mismo día)</span>
+                    </label>
+                    <input
+                      v-model="reminderSettings.config.reminder_time"
+                      type="time"
+                      class="input input-bordered input-sm w-full"
+                    />
+                  </div>
+
+                  <div class="form-control">
+                    <label class="label py-1">
+                      <span class="label-text text-xs font-semibold">Título del aviso</span>
+                    </label>
+                    <input
+                      v-model="reminderSettings.config.reminder_title"
+                      type="text"
+                      class="input input-bordered input-sm w-full"
+                      placeholder="☕ ¡Hoy te toca hacer el café!"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-control">
+                  <label class="label py-1">
+                    <span class="label-text text-xs font-semibold">
+                      Mensaje de la notificación (usa <code class="text-primary">{nombre}</code> para el nombre del encargado)
+                    </span>
+                  </label>
+                  <textarea
+                    v-model="reminderSettings.config.reminder_message"
+                    class="textarea textarea-bordered textarea-sm w-full h-20"
+                    placeholder="Hola {nombre}, hoy es tu turno de preparar el café para el equipo."
+                  ></textarea>
+                </div>
+
+                <div class="border-t border-base-200 pt-3">
+                  <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3 py-1">
+                      <input
+                        v-model="reminderSettings.config.notify_day_before"
+                        type="checkbox"
+                        class="toggle toggle-secondary toggle-sm"
+                      />
+                      <span class="label-text text-xs font-semibold">
+                        Avisar también la tarde anterior (recordatorio previo)
+                      </span>
+                    </label>
+                  </div>
+
+                  <div v-if="reminderSettings.config.notify_day_before" class="form-control mt-2 max-w-xs">
+                    <label class="label py-1">
+                      <span class="label-text text-xs font-semibold">Hora del aviso previo (Día anterior)</span>
+                    </label>
+                    <input
+                      v-model="reminderSettings.config.day_before_time"
+                      type="time"
+                      class="input input-bordered input-sm"
+                    />
+                  </div>
+                </div>
+
+                <div class="pt-2">
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-sm"
+                    :disabled="savingReminders"
+                    @click="handleSaveReminderSettings"
+                  >
+                    <span v-if="savingReminders" class="loading loading-spinner loading-xs"></span>
+                    <span>💾 Guardar Configuración</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Enviar Aviso Manual / Inmediato -->
+              <div class="lg:col-span-1 space-y-4">
+                <div class="border border-base-300 rounded-2xl p-4 bg-base-200/50 space-y-3">
+                  <h4 class="font-bold text-sm flex items-center justify-between">
+                    <span>☕ Encargado de Hoy</span>
+                    <span
+                      v-if="reminderSettings.today"
+                      class="badge badge-xs"
+                      :class="reminderSettings.today.status === 'completed' ? 'badge-success' : 'badge-warning'"
+                    >
+                      {{ reminderSettings.today.status === 'completed' ? 'Listo' : 'Pendiente' }}
+                    </span>
+                  </h4>
+
+                  <div v-if="reminderSettings.today" class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <UserAvatar :name="reminderSettings.today.display_name" :size="32" variant="beam" />
+                      <div>
+                        <div class="font-bold text-sm">{{ reminderSettings.today.display_name }}</div>
+                        <div class="text-xs text-base-content/80">@{{ reminderSettings.today.username }}</div>
+                      </div>
+                    </div>
+
+                    <div class="text-xs text-base-content/85">
+                      Dispositivos con push: <strong>{{ reminderSettings.today.push_devices }}</strong>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline btn-warning w-full gap-1.5"
+                      :disabled="sendingReminderNow"
+                      @click="handleSendReminderNow('today')"
+                    >
+                      <span>🔔</span>
+                      <span>Notificar a {{ reminderSettings.today.display_name.split(' ')[0] }} Ahora</span>
+                    </button>
+                  </div>
+                  <div v-else class="text-xs text-base-content/75 italic">
+                    No hay turno asignado para el día de hoy.
+                  </div>
+                </div>
+
+                <!-- Encargado de Mañana -->
+                <div class="border border-base-300 rounded-2xl p-4 bg-base-200/50 space-y-3">
+                  <h4 class="font-bold text-sm">☕ Encargado de Mañana</h4>
+                  <div v-if="reminderSettings.tomorrow" class="space-y-2">
+                    <div class="flex items-center gap-2">
+                      <UserAvatar :name="reminderSettings.tomorrow.display_name" :size="32" variant="beam" />
+                      <div>
+                        <div class="font-bold text-sm">{{ reminderSettings.tomorrow.display_name }}</div>
+                        <div class="text-xs text-base-content/80">@{{ reminderSettings.tomorrow.username }}</div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline btn-secondary w-full gap-1.5"
+                      :disabled="sendingReminderNow"
+                      @click="handleSendReminderNow('tomorrow')"
+                    >
+                      <span>🔔</span>
+                      <span>Enviar Recordatorio Previo</span>
+                    </button>
+                  </div>
+                  <div v-else class="text-xs text-base-content/75 italic">
+                    No hay turno asignado para el día de mañana.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
@@ -1341,6 +1524,73 @@ async function handleTestPush() {
     showFeedback(res.message || 'Notificación de prueba enviada.')
   } catch (err: any) {
     showFeedback(err?.data?.statusMessage || 'Error al enviar notificación de prueba.', 'error')
+  }
+}
+
+// Reminder Settings & Manual Push
+const reminderSettings = reactive({
+  config: {
+    reminder_enabled: true,
+    reminder_time: '08:30',
+    reminder_title: '☕ ¡Hoy te toca hacer el café!',
+    reminder_message: 'Hola {nombre}, hoy es tu turno de preparar el café para el equipo.',
+    notify_day_before: false,
+    day_before_time: '17:00'
+  },
+  today: null as any,
+  tomorrow: null as any
+})
+const savingReminders = ref(false)
+const sendingReminderNow = ref(false)
+
+async function fetchReminderSettings() {
+  try {
+    const data: any = await $fetch('/api/settings/reminder')
+    if (data?.config) {
+      Object.assign(reminderSettings.config, data.config)
+    }
+    reminderSettings.today = data?.today || null
+    reminderSettings.tomorrow = data?.tomorrow || null
+  } catch (e) {
+    // ignore
+  }
+}
+
+onMounted(() => {
+  if (isAdmin.value) {
+    fetchReminderSettings()
+  }
+})
+
+async function handleSaveReminderSettings() {
+  savingReminders.value = true
+  try {
+    await $fetch('/api/settings/reminder', {
+      method: 'PUT',
+      body: { ...reminderSettings.config }
+    })
+    showFeedback('Configuración de recordatorios guardada con éxito.')
+    await fetchReminderSettings()
+  } catch (err: any) {
+    showFeedback(err?.data?.statusMessage || 'Error al guardar la configuración.', 'error')
+  } finally {
+    savingReminders.value = false
+  }
+}
+
+async function handleSendReminderNow(target: 'today' | 'tomorrow') {
+  sendingReminderNow.value = true
+  try {
+    const res: any = await $fetch('/api/settings/reminder/send-now', {
+      method: 'POST',
+      body: { target }
+    })
+    showFeedback(res.message || 'Recordatorio enviado.')
+    await fetchReminderSettings()
+  } catch (err: any) {
+    showFeedback(err?.data?.statusMessage || 'Error al enviar recordatorio.', 'error')
+  } finally {
+    sendingReminderNow.value = false
   }
 }
 
