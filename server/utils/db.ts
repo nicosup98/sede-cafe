@@ -24,14 +24,15 @@ export function getDbClient(): Client {
   if (_client) return _client
 
   let url = 'file:./data/sede-cafe.db'
-  let authToken: string | undefined = process.env.TURSO_AUTH_TOKEN || undefined
+  let authToken: string | undefined = process.env.TURSO_TOKEN || process.env.TURSO_AUTH_TOKEN || undefined
 
   try {
     const config = useRuntimeConfig()
-    url = config.tursoDatabaseUrl || process.env.TURSO_DATABASE_URL || url
-    authToken = config.tursoAuthToken || authToken
+    url = config.tursoDatabaseUrl || process.env.TURSO_URL || process.env.TURSO_DATABASE_URL || url
+    authToken = config.tursoAuthToken || process.env.TURSO_TOKEN || process.env.TURSO_AUTH_TOKEN || authToken
   } catch {
-    url = process.env.TURSO_DATABASE_URL || url
+    url = process.env.TURSO_URL || process.env.TURSO_DATABASE_URL || url
+    authToken = process.env.TURSO_TOKEN || process.env.TURSO_AUTH_TOKEN || authToken
   }
 
   if (url.startsWith('file:')) {

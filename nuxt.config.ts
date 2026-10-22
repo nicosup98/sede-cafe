@@ -21,8 +21,8 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
-    tursoDatabaseUrl: process.env.TURSO_DATABASE_URL || 'file:./data/sede-cafe.db',
-    tursoAuthToken: process.env.TURSO_AUTH_TOKEN || '',
+    tursoDatabaseUrl: process.env.TURSO_URL || process.env.TURSO_DATABASE_URL || 'file:./data/sede-cafe.db',
+    tursoAuthToken: process.env.TURSO_TOKEN || process.env.TURSO_AUTH_TOKEN || '',
     sessionSecret: process.env.SESSION_SECRET || 'sede-cafe-super-secret-key-2026'
   }
 })
