@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @plugin "daisyui";
 @import "daisyui/themes.css";
+@import "animate.css";
 
 /* Mejoras de contraste y legibilidad para el tema oscuro */
 [data-theme="coffee"] {
@@ -10,4 +11,9 @@
 
 [data-theme="dark"] {
   --color-base-content: oklch(98% 0.01 250);
+}
+
+/* Safe area padding para móviles */
+.safe-pb {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1.5rem));
 }

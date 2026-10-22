@@ -19,11 +19,13 @@
 
       <!-- Center Tabs (Desktop) -->
       <div class="navbar-center hidden lg:flex">
-        <div role="tablist" class="tabs tabs-boxed rounded-full bg-base-200/90 p-1.5 border border-base-300 shadow-inner gap-1">
+        <div role="tablist" class="flex items-center rounded-full bg-base-200/90 p-1.5 border border-base-300 shadow-inner gap-1">
           <button
             role="tab"
-            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
-            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'schedule' }"
+            class="rounded-full gap-2 font-medium px-4 py-1.5 text-xs inline-flex items-center justify-center transition-all duration-300 ease-out transform active:scale-95 cursor-pointer select-none"
+            :class="activeTab === 'schedule'
+              ? 'bg-primary text-primary-content shadow-md font-bold scale-[1.02]'
+              : 'text-base-content/75 hover:text-base-content hover:bg-base-300/60'"
             @click="activeTab = 'schedule'"
           >
             <span>📅</span>
@@ -31,20 +33,27 @@
           </button>
           <button
             role="tab"
-            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
-            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'swaps' }"
+            class="rounded-full gap-2 font-medium px-4 py-1.5 text-xs inline-flex items-center justify-center transition-all duration-300 ease-out transform active:scale-95 cursor-pointer select-none"
+            :class="activeTab === 'swaps'
+              ? 'bg-primary text-primary-content shadow-md font-bold scale-[1.02]'
+              : 'text-base-content/75 hover:text-base-content hover:bg-base-300/60'"
             @click="activeTab = 'swaps'"
           >
             <span>🔄</span>
             <span>Intercambios</span>
-            <span v-if="actionableSwapsCount > 0" class="badge badge-warning badge-sm font-bold">
+            <span
+              v-if="actionableSwapsCount > 0"
+              class="badge badge-warning badge-xs font-bold animate__animated animate__pulse animate__infinite"
+            >
               {{ actionableSwapsCount }}
             </span>
           </button>
           <button
             role="tab"
-            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
-            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'equity' }"
+            class="rounded-full gap-2 font-medium px-4 py-1.5 text-xs inline-flex items-center justify-center transition-all duration-300 ease-out transform active:scale-95 cursor-pointer select-none"
+            :class="activeTab === 'equity'
+              ? 'bg-primary text-primary-content shadow-md font-bold scale-[1.02]'
+              : 'text-base-content/75 hover:text-base-content hover:bg-base-300/60'"
             @click="activeTab = 'equity'"
           >
             <span>⚖️</span>
@@ -52,8 +61,10 @@
           </button>
           <button
             role="tab"
-            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
-            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'users' }"
+            class="rounded-full gap-2 font-medium px-4 py-1.5 text-xs inline-flex items-center justify-center transition-all duration-300 ease-out transform active:scale-95 cursor-pointer select-none"
+            :class="activeTab === 'users'
+              ? 'bg-primary text-primary-content shadow-md font-bold scale-[1.02]'
+              : 'text-base-content/75 hover:text-base-content hover:bg-base-300/60'"
             @click="activeTab = 'users'"
           >
             <span>👥</span>
@@ -165,19 +176,19 @@
       </div>
     </header>
 
-    <!-- Mobile Navigation Tabs -->
-    <div class="lg:hidden bg-base-100 border-b border-base-300 px-3 py-2 overflow-x-auto">
+    <!-- Mobile Navigation Tabs (Sticky Pill Bar) -->
+    <div class="lg:hidden bg-base-100/90 backdrop-blur-md border-b border-base-300 px-3 py-2 overflow-x-auto sticky top-[57px] z-20 shadow-xs">
       <div class="flex gap-1.5 min-w-max bg-base-200/80 p-1 rounded-full border border-base-300 shadow-inner">
         <button
-          class="btn btn-xs rounded-full px-3 transition-all font-medium"
-          :class="activeTab === 'schedule' ? 'btn-primary shadow-xs' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3.5 transition-all duration-300 ease-out font-medium active:scale-95"
+          :class="activeTab === 'schedule' ? 'btn-primary shadow-sm font-bold scale-[1.02]' : 'btn-ghost text-base-content/75'"
           @click="activeTab = 'schedule'"
         >
           📅 Calendario
         </button>
         <button
-          class="btn btn-xs rounded-full px-3 transition-all font-medium"
-          :class="activeTab === 'swaps' ? 'btn-primary shadow-xs' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3.5 transition-all duration-300 ease-out font-medium active:scale-95"
+          :class="activeTab === 'swaps' ? 'btn-primary shadow-sm font-bold scale-[1.02]' : 'btn-ghost text-base-content/75'"
           @click="activeTab = 'swaps'"
         >
           🔄 Intercambios
@@ -186,15 +197,15 @@
           </span>
         </button>
         <button
-          class="btn btn-xs rounded-full px-3 transition-all font-medium"
-          :class="activeTab === 'equity' ? 'btn-primary shadow-xs' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3.5 transition-all duration-300 ease-out font-medium active:scale-95"
+          :class="activeTab === 'equity' ? 'btn-primary shadow-sm font-bold scale-[1.02]' : 'btn-ghost text-base-content/75'"
           @click="activeTab = 'equity'"
         >
           ⚖️ Equidad
         </button>
         <button
-          class="btn btn-xs rounded-full px-3 transition-all font-medium"
-          :class="activeTab === 'users' ? 'btn-primary shadow-xs' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3.5 transition-all duration-300 ease-out font-medium active:scale-95"
+          :class="activeTab === 'users' ? 'btn-primary shadow-sm font-bold scale-[1.02]' : 'btn-ghost text-base-content/75'"
           @click="activeTab = 'users'"
         >
           👥 Usuarios
@@ -203,11 +214,11 @@
     </div>
 
     <!-- Main Content Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-6">
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3.5 sm:p-4 lg:p-8 space-y-6 pb-24 safe-pb">
       <!-- Global Notification Banner if user has pending cover requests -->
       <div
         v-if="myIncomingPendingSwaps.length > 0 && activeTab !== 'swaps'"
-        class="alert alert-warning shadow-md"
+        class="alert alert-warning shadow-md rounded-2xl animate__animated animate__headShake"
       >
         <div class="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div class="flex items-center gap-2 text-sm">
@@ -216,22 +227,82 @@
               Tienes <strong>{{ myIncomingPendingSwaps.length }}</strong> solicitud(es) de compañero(s) pidiendo cubrir o intercambiar un turno de café.
             </span>
           </div>
-          <button class="btn btn-sm btn-neutral" @click="activeTab = 'swaps'">
+          <button class="btn btn-sm btn-neutral rounded-full transition-transform active:scale-95" @click="activeTab = 'swaps'">
             Ver y Responder Solicitudes
           </button>
         </div>
       </div>
 
-      <!-- Toast Feedback -->
-      <div v-if="feedbackMsg" class="alert shadow-md" :class="feedbackType === 'error' ? 'alert-error' : 'alert-success'">
-        <span>{{ feedbackMsg }}</span>
-        <button class="btn btn-xs btn-ghost" @click="feedbackMsg = ''">✕</button>
-      </div>
+      <!-- Toast Feedback (Floating with Tailwind CSS transition) -->
+      <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="-translate-y-4 opacity-0 scale-95"
+        enter-to-class="translate-y-0 opacity-100 scale-100"
+        leave-active-class="transition duration-200 ease-in"
+        leave-from-class="translate-y-0 opacity-100 scale-100"
+        leave-to-class="-translate-y-4 opacity-0 scale-95"
+      >
+        <div v-if="feedbackMsg" class="toast toast-top toast-center z-50 p-3 pt-16 sm:pt-4">
+          <div
+            class="alert shadow-2xl border flex items-center justify-between gap-3 text-sm py-2.5 px-4 rounded-2xl max-w-md backdrop-blur-md"
+            :class="feedbackType === 'error' ? 'alert-error' : 'alert-success'"
+          >
+            <span class="flex items-center gap-2 font-medium">
+              <span v-if="feedbackType === 'error'" class="text-base">⚠️</span>
+              <span v-else class="text-base animate__animated animate__tada">☕</span>
+              <span>{{ feedbackMsg }}</span>
+            </span>
+            <button class="btn btn-xs btn-circle btn-ghost" @click="feedbackMsg = ''">✕</button>
+          </div>
+        </div>
+      </Transition>
 
-      <!-- ===================================================== -->
-      <!-- TAB 1: CALENDARIO SEMANAL DE CAFÉ                     -->
-      <!-- ===================================================== -->
-      <section v-if="activeTab === 'schedule'" class="space-y-6">
+      <!-- Coffee Celebration Animated Overlay (Tailwind CSS transition + Animate.css) -->
+      <Transition
+        enter-active-class="transition duration-300 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition duration-250 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="celebratingCoffee"
+          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-[2px]"
+          @click="celebratingCoffee = false"
+        >
+          <div
+            class="bg-base-100 p-6 sm:p-8 rounded-3xl shadow-2xl border-2 border-primary text-center space-y-3 max-w-xs animate__animated animate__bounceIn"
+            @click.stop
+          >
+            <div class="text-6xl animate__animated animate__tada animate__infinite">☕✨</div>
+            <h4 class="font-extrabold text-2xl text-primary">¡Café Listo!</h4>
+            <p class="text-xs text-base-content/85">
+              ¡Excelente! El turno ha sido completado y el café está preparado para el equipo.
+            </p>
+            <button
+              type="button"
+              class="btn btn-sm btn-primary rounded-full px-6 text-xs mt-2 transition-transform active:scale-95"
+              @click="celebratingCoffee = false"
+            >
+              ¡Buen provecho! ☕
+            </button>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Tab Content Transition (Tailwind CSS transition) -->
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 translate-y-3 scale-[0.99]"
+        enter-to-class="opacity-100 translate-y-0 scale-100"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 translate-y-0 scale-100"
+        leave-to-class="opacity-0 -translate-y-3 scale-[0.99]"
+        mode="out-in"
+      >
+        <section v-if="activeTab === 'schedule'" key="schedule" class="space-y-6">
+          <!-- TAB 1: CALENDARIO SEMANAL DE CAFÉ -->
         <!-- Week Selector & Admin Actions Bar -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
           <div class="card-body p-4 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -386,11 +457,13 @@
           <div
             v-for="shift in regularShifts"
             :key="shift.id"
-            class="card bg-base-100 shadow-sm border transition-all flex flex-col justify-between"
+            class="card bg-base-100 shadow-sm border transition-all duration-200 flex flex-col justify-between hover:shadow-md today-card-pulse"
             :class="[
-              shift.assigned_user_id === currentUser?.id
-                ? 'border-primary ring-2 ring-primary/20'
-                : 'border-base-300',
+              isToday(shift.shift_date)
+                ? 'border-primary ring-2 ring-primary ring-offset-2 ring-offset-base-100 bg-primary/5 shadow-md'
+                : (shift.assigned_user_id === currentUser?.id
+                  ? 'border-primary/60 ring-1 ring-primary/30'
+                  : 'border-base-300'),
               shift.status === 'skipped' ? 'opacity-75 bg-base-300/60' : ''
             ]"
           >
@@ -404,13 +477,13 @@
                 <div class="flex flex-col items-end gap-1">
                   <span
                     v-if="isToday(shift.shift_date)"
-                    class="badge badge-primary badge-xs font-bold"
+                    class="badge badge-primary badge-sm font-black tracking-wider shadow-xs animate__animated animate__pulse animate__infinite animate__slower"
                   >
-                    HOY
+                    HOY ☕
                   </span>
                   <span
                     v-if="shift.status === 'completed'"
-                    class="badge badge-success badge-sm gap-1"
+                    class="badge badge-success badge-sm gap-1 animate__animated animate__bounceIn"
                   >
                     ✓ Listo
                   </span>
@@ -486,12 +559,12 @@
             </div>
 
             <!-- Card Footer Actions -->
-            <div class="p-3 pt-0 space-y-1.5">
+            <div class="p-3 pt-0 space-y-2">
               <!-- Complete / Uncomplete Button (Owner or Admin) -->
               <button
                 v-if="(shift.assigned_user_id === currentUser?.id || isAdmin) && shift.status !== 'skipped'"
                 type="button"
-                class="btn btn-xs w-full"
+                class="btn btn-sm sm:btn-xs w-full rounded-full active:scale-95 transition-all font-semibold shadow-xs"
                 :class="shift.status === 'completed' ? 'btn-outline btn-success' : 'btn-success'"
                 @click="toggleShiftCompleted(shift)"
               >
@@ -503,11 +576,11 @@
               <button
                 v-if="(shift.assigned_user_id === currentUser?.id || isAdmin) && shift.status === 'pending'"
                 type="button"
-                class="btn btn-xs btn-outline w-full gap-1"
+                class="btn btn-sm sm:btn-xs btn-outline w-full gap-1 rounded-full active:scale-95 transition-all"
                 @click="openSwapModal(shift)"
               >
                 <span>🔄</span>
-                <span>{{ isAdmin && shift.assigned_user_id !== currentUser?.id ? 'Reasignar / Cubrir' : 'Pedir que me cubran / Cambiar' }}</span>
+                <span>{{ isAdmin && shift.assigned_user_id !== currentUser?.id ? 'Reasignar / Cubrir' : 'Pedir que me cubran' }}</span>
               </button>
 
               <!-- Admin Holiday / Skip Toggle -->
@@ -589,7 +662,7 @@
                   <button
                     v-if="shift.assigned_user_id === currentUser?.id || isAdmin"
                     type="button"
-                    class="btn btn-xs flex-1"
+                    class="btn btn-sm sm:btn-xs flex-1 rounded-full active:scale-95 transition-all font-semibold"
                     :class="shift.status === 'completed' ? 'btn-outline btn-success' : 'btn-success'"
                     @click="toggleShiftCompleted(shift)"
                   >
@@ -613,10 +686,8 @@
         </div>
       </section>
 
-      <!-- ===================================================== -->
-      <!-- TAB 2: INTERCAMBIOS Y COBERTURAS DE TURNOS            -->
-      <!-- ===================================================== -->
-      <section v-if="activeTab === 'swaps'" class="space-y-6">
+      <section v-else-if="activeTab === 'swaps'" key="swaps" class="space-y-6">
+        <!-- TAB 2: INTERCAMBIOS Y COBERTURAS DE TURNOS -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 class="text-2xl font-bold">Intercambios y Coberturas de Turno</h2>
@@ -777,10 +848,8 @@
         </div>
       </section>
 
-      <!-- ===================================================== -->
-      <!-- TAB 3: EQUIDAD Y COMPENSACIÓN                         -->
-      <!-- ===================================================== -->
-      <section v-if="activeTab === 'equity'" class="space-y-6">
+      <section v-else-if="activeTab === 'equity'" key="equity" class="space-y-6">
+        <!-- TAB 3: EQUIDAD Y COMPENSACIÓN -->
         <div class="card bg-base-100 shadow-sm border border-base-300">
           <div class="card-body p-4 sm:p-6 space-y-4">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -877,10 +946,8 @@
         </div>
       </section>
 
-      <!-- ===================================================== -->
-      <!-- TAB 4: MÓDULO DE USUARIOS Y PERMISOS                  -->
-      <!-- ===================================================== -->
-      <section v-if="activeTab === 'users'" class="space-y-6">
+      <section v-else-if="activeTab === 'users'" key="users" class="space-y-6">
+        <!-- TAB 4: MÓDULO DE USUARIOS Y PERMISOS -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Create User Card (Admin Only) -->
           <div class="lg:col-span-1">
@@ -1243,13 +1310,14 @@
           </div>
         </div>
       </section>
+      </Transition>
     </main>
 
     <!-- ===================================================== -->
     <!-- MODAL: ASIGNAR TURNO EXTRAORDINARIO (FIN DE SEMANA)   -->
     <!-- ===================================================== -->
     <dialog class="modal" :class="{ 'modal-open': extraModal.open }">
-      <div class="modal-box max-w-md">
+      <div class="modal-box max-w-md w-[95%] sm:w-full rounded-3xl p-5 sm:p-6 shadow-2xl animate__animated animate__zoomIn animate__faster">
         <h3 class="font-bold text-lg flex items-center gap-2">
           <span>✨ Asignar Turno Extraordinario de Café</span>
         </h3>
@@ -1322,7 +1390,7 @@
     <!-- MODAL: SOLICITAR COBERTURA O INTERCAMBIO DE TURNO     -->
     <!-- ===================================================== -->
     <dialog class="modal" :class="{ 'modal-open': swapModal.open }">
-      <div class="modal-box max-w-lg">
+      <div class="modal-box max-w-lg w-[95%] sm:w-full rounded-3xl p-5 sm:p-6 shadow-2xl animate__animated animate__zoomIn animate__faster">
         <h3 class="font-bold text-lg flex items-center gap-2">
           <span>🔄 Cubrir o Intercambiar Turno de Café</span>
         </h3>
@@ -1457,7 +1525,7 @@
     <!-- MODAL: PERSONALIZAR AVATAR BORING AVATARS             -->
     <!-- ===================================================== -->
     <dialog class="modal" :class="{ 'modal-open': avatarModal.open }">
-      <div class="modal-box max-w-lg">
+      <div class="modal-box max-w-lg w-[95%] sm:w-full rounded-3xl p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate__animated animate__zoomIn animate__faster">
         <h3 class="font-bold text-lg flex items-center gap-2">
           <span>🎨</span>
           <span>Personalizar mi Boring Avatar</span>
@@ -1594,7 +1662,7 @@
     <!-- MODAL: CAMBIAR MI PIN / RESETEAR PIN                  -->
     <!-- ===================================================== -->
     <dialog class="modal" :class="{ 'modal-open': pinModal.open }">
-      <div class="modal-box max-w-sm">
+      <div class="modal-box max-w-sm w-[95%] sm:w-full rounded-3xl p-5 sm:p-6 shadow-2xl animate__animated animate__zoomIn animate__faster">
         <h3 class="font-bold text-lg">
           {{ pinModal.targetUser ? `🔑 Nuevo PIN para ${pinModal.targetUser.display_name}` : '🔑 Cambiar mi PIN' }}
         </h3>
@@ -1638,6 +1706,7 @@ const theme = useState<string>('sede_cafe_theme', () => 'cupcake')
 const activeTab = ref<'schedule' | 'swaps' | 'equity' | 'users'>('schedule')
 const feedbackMsg = ref('')
 const feedbackType = ref<'success' | 'error'>('success')
+const celebratingCoffee = ref(false)
 
 // PWA Push Notifications
 const {
@@ -1907,7 +1976,15 @@ async function toggleShiftCompleted(shift: any) {
       body: { status: nextStatus }
     })
     await refreshWeek()
-    showFeedback(nextStatus === 'completed' ? '¡Café marcado como listo! ☕' : 'Turno marcado como pendiente.')
+    if (nextStatus === 'completed') {
+      celebratingCoffee.value = true
+      setTimeout(() => {
+        celebratingCoffee.value = false
+      }, 3500)
+      showFeedback('¡Café marcado como listo! ☕ ¡A disfrutar!')
+    } else {
+      showFeedback('Turno marcado como pendiente.')
+    }
   } catch (err: any) {
     showFeedback(err?.data?.statusMessage || 'No se pudo actualizar el turno.', 'error')
   }

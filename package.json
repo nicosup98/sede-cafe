@@ -12,6 +12,7 @@
   "dependencies": {
     "@libsql/client": "^0.14.0",
     "@tailwindcss/vite": "^4.3.3",
+    "animate.css": "^4.1.1",
     "daisyui": "^5.7.50",
     "dayjs": "^1.11.23",
     "nuxt": "4.6.2",
