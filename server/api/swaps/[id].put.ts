@@ -1,5 +1,6 @@
 import { requireUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
+import { sendPushToUser } from '../../utils/notifications'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
@@ -95,6 +96,12 @@ export default defineEventHandler(async (event) => {
       args: [requesterId, swapId, targetShiftId]
     })
   }
+
+  sendPushToUser(requesterId, {
+    title: '✅ Cambio de turno aceptado',
+    body: `${user.display_name} ha aceptado el cambio de turno. El calendario ha sido actualizado.`,
+    url: '/'
+  }).catch(() => {})
 
   return { ok: true, status: finalStatus }
 })

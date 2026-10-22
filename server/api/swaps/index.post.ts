@@ -1,5 +1,6 @@
 import { requireUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
+import { sendPushToUser } from '../../utils/notifications'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
@@ -108,6 +109,12 @@ export default defineEventHandler(async (event) => {
           RETURNING id`,
     args: [type, shiftId, targetShiftId, shiftOwnerId, targetUserId, reason]
   })
+
+  sendPushToUser(targetUserId, {
+    title: '🔄 Solicitud de cambio de café',
+    body: `${user.display_name} te ha enviado una solicitud para ${type === 'cover' ? 'cubrir su turno' : 'intercambiar un turno'} de café.`,
+    url: '/?tab=swaps'
+  }).catch(() => {})
 
   return {
     ok: true,

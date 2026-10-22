@@ -1,5 +1,6 @@
 import { requireUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
+import { sendPushToAll } from '../../utils/notifications'
 
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
@@ -47,6 +48,14 @@ export default defineEventHandler(async (event) => {
     sql: 'UPDATE shifts SET status = ?, notes = ? WHERE id = ?',
     args: [newStatus, newNotes, shiftId]
   })
+
+  if (newStatus === 'completed' && shift.status !== 'completed') {
+    sendPushToAll({
+      title: '☕ ¡El café está listo!',
+      body: `${user.display_name} acaba de preparar y marcar listo el café. ¡Pasa por el tuyo!`,
+      url: '/'
+    }).catch(() => {})
+  }
 
   return { ok: true, status: newStatus, notes: newNotes }
 })

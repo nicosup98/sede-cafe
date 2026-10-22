@@ -12,7 +12,7 @@
               <span>Sede Café</span>
               <span class="badge badge-sm badge-secondary hidden sm:inline-flex">Semanal</span>
             </div>
-            <p class="text-xs opacity-65 hidden sm:block">Asignación equitativa de turnos de café</p>
+            <p class="text-xs text-base-content/80 hidden sm:block">Asignación equitativa de turnos de café</p>
           </div>
         </div>
       </div>
@@ -64,6 +64,67 @@
 
       <!-- Right User Controls -->
       <div class="navbar-end gap-2">
+        <!-- PWA Push Notifications Button / Dropdown -->
+        <div class="dropdown dropdown-end">
+          <div
+            tabindex="0"
+            role="button"
+            class="btn btn-ghost btn-sm btn-circle relative"
+            :title="isSubscribed ? 'Notificaciones Push activadas' : 'Activar Notificaciones Push'"
+          >
+            <span class="text-lg">🔔</span>
+            <span
+              v-if="isSubscribed"
+              class="w-2.5 h-2.5 rounded-full bg-success absolute top-1.5 right-1.5 ring-2 ring-base-100"
+            ></span>
+          </div>
+          <div tabindex="0" class="dropdown-content card card-compact bg-base-100 rounded-box z-50 w-72 p-3 shadow-xl border border-base-300 mt-2">
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs uppercase tracking-wider text-base-content/85">Notificaciones Push PWA</span>
+                <span
+                  class="badge badge-xs font-bold"
+                  :class="isSubscribed ? 'badge-success' : 'badge-ghost'"
+                >
+                  {{ isSubscribed ? 'Activadas' : 'Inactivas' }}
+                </span>
+              </div>
+              <p class="text-xs text-base-content/85">
+                Recibe avisos en tu móvil cuando te toque café, el café esté listo o te pidan un cambio de turno.
+              </p>
+              <div class="pt-1 flex flex-col gap-1.5">
+                <button
+                  v-if="!isSubscribed"
+                  type="button"
+                  class="btn btn-primary btn-sm w-full gap-1.5"
+                  :disabled="pushLoading"
+                  @click="handleEnablePush"
+                >
+                  <span v-if="pushLoading" class="loading loading-spinner loading-xs"></span>
+                  <span>📲 Activar en este teléfono</span>
+                </button>
+                <button
+                  v-else
+                  type="button"
+                  class="btn btn-outline btn-sm w-full gap-1.5"
+                  :disabled="pushLoading"
+                  @click="handleDisablePush"
+                >
+                  <span>🔕 Desactivar en este dispositivo</span>
+                </button>
+                <button
+                  v-if="isSubscribed"
+                  type="button"
+                  class="btn btn-ghost btn-xs w-full text-secondary"
+                  @click="handleTestPush"
+                >
+                  ⚡ Enviar notificación de prueba
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Dark / Light Theme Toggle -->
         <button
           type="button"
@@ -189,7 +250,7 @@
                   Próxima Semana
                 </span>
               </div>
-              <p class="text-xs opacity-70">
+              <p class="text-xs text-base-content/85">
                 Turnos hábiles de Lunes a Viernes y turnos extraordinarios de fines de semana. Se compensan de forma equitativa.
               </p>
             </div>
@@ -290,7 +351,7 @@
             <h3 class="text-xl font-bold">
               Esta semana aún no ha sido generada
             </h3>
-            <p class="text-sm opacity-75">
+            <p class="text-sm text-base-content/85">
               Los turnos semanales regulares (Lunes a Viernes) se generan bajo demanda del Administrador tomando en cuenta el historial y coberturas previas.
             </p>
             <div v-if="isAdmin" class="pt-2 flex flex-wrap justify-center gap-3">
@@ -327,7 +388,7 @@
               shift.assigned_user_id === currentUser?.id
                 ? 'border-primary ring-2 ring-primary/20'
                 : 'border-base-300',
-              shift.status === 'skipped' ? 'opacity-60 bg-base-200' : ''
+              shift.status === 'skipped' ? 'opacity-75 bg-base-300/60' : ''
             ]"
           >
             <div class="card-body p-4 space-y-3">
@@ -335,7 +396,7 @@
               <div class="flex items-center justify-between border-b border-base-200 pb-2">
                 <div>
                   <span class="font-extrabold text-base block">{{ shift.day_name }}</span>
-                  <span class="text-xs opacity-65">{{ formatDateHuman(shift.shift_date) }}</span>
+                  <span class="text-xs text-base-content/85 font-medium">{{ formatDateHuman(shift.shift_date) }}</span>
                 </div>
                 <div class="flex flex-col items-end gap-1">
                   <span
@@ -369,12 +430,12 @@
               <div class="py-2 flex items-center gap-3">
                 <UserAvatar :name="shift.assigned_user_name" :size="48" variant="beam" />
                 <div class="min-w-0 flex-1">
-                  <div class="text-xs opacity-60">Encargado del café:</div>
+                  <div class="text-xs text-base-content/80 font-medium">Encargado del café:</div>
                   <div class="font-bold text-base truncate" :title="shift.assigned_user_name">
                     {{ shift.assigned_user_name }}
                   </div>
                   <div class="flex flex-wrap items-center gap-1 mt-0.5">
-                    <span class="text-xs opacity-70">@{{ shift.assigned_username }}</span>
+                    <span class="text-xs text-base-content/85">@{{ shift.assigned_username }}</span>
                     <span
                       v-if="shift.assigned_user_role === 'admin'"
                       class="badge badge-warning badge-xs"
@@ -394,29 +455,29 @@
               <!-- Cover / Compensation Notice if covered -->
               <div
                 v-if="shift.was_covered"
-                class="bg-info/15 border border-info/30 text-info-content rounded-lg p-2 text-xs space-y-0.5"
+                class="bg-info/15 border border-info/40 text-base-content rounded-lg p-2.5 text-xs space-y-1"
               >
-                <div class="font-semibold flex items-center gap-1">
+                <div class="font-bold text-info flex items-center gap-1">
                   <span>🤝 Turno cubierto</span>
                 </div>
-                <p class="opacity-85">
-                  Originalmente de <strong>{{ shift.original_user_name }}</strong>. El conteo se compensa en las siguientes semanas.
+                <p class="text-base-content/90">
+                  Originalmente de <strong class="text-base-content">{{ shift.original_user_name }}</strong>. El conteo se compensa en las siguientes semanas.
                 </p>
               </div>
 
               <!-- Pending Swap Banner on this Shift -->
               <div
                 v-if="getPendingSwapForShift(shift.id)"
-                class="bg-warning/20 border border-warning/40 rounded-lg p-2 text-xs"
+                class="bg-warning/15 border border-warning/40 text-base-content rounded-lg p-2.5 text-xs space-y-0.5"
               >
-                <div class="font-semibold">⏳ Solicitud pendiente</div>
-                <div>
-                  Esperando respuesta de <strong>{{ getPendingSwapForShift(shift.id)?.target_name }}</strong>
+                <div class="font-bold text-warning">⏳ Solicitud pendiente</div>
+                <div class="text-base-content/90">
+                  Esperando respuesta de <strong class="text-base-content">{{ getPendingSwapForShift(shift.id)?.target_name }}</strong>
                 </div>
               </div>
 
               <!-- Notes if any -->
-              <div v-if="shift.notes" class="text-xs italic opacity-75 bg-base-200 p-2 rounded">
+              <div v-if="shift.notes" class="text-xs italic text-base-content/90 bg-base-200 border border-base-300 p-2 rounded">
                 "{{ shift.notes }}"
               </div>
             </div>
@@ -469,7 +530,7 @@
                   <span>✨ Turnos Extraordinarios (Fines de Semana / Especiales)</span>
                   <span class="badge badge-secondary badge-sm">{{ extraordinaryShifts.length }}</span>
                 </h3>
-                <p class="text-xs opacity-75">
+                <p class="text-xs text-base-content/85">
                   Turnos asignados fuera de días hábiles regulares. Suman al conteo de café del integrante y el sistema lo compensa automáticamente en las siguientes asignaciones.
                 </p>
               </div>
@@ -509,14 +570,14 @@
                     <UserAvatar :name="shift.assigned_user_name" :size="42" variant="beam" />
                     <div>
                       <div class="font-bold text-sm">{{ shift.assigned_user_name }}</div>
-                      <div class="text-xs opacity-70">
+                      <div class="text-xs text-base-content/85">
                         @{{ shift.assigned_username }}
                         <span v-if="shift.assigned_user_id === currentUser?.id" class="badge badge-xs badge-outline">Tú</span>
                       </div>
                     </div>
                   </div>
 
-                  <p v-if="shift.notes" class="text-xs italic bg-base-100 p-2 rounded border border-base-300">
+                  <p v-if="shift.notes" class="text-xs italic bg-base-100 p-2 rounded border border-base-300 text-base-content/95">
                     "{{ shift.notes }}"
                   </p>
                 </div>
@@ -556,7 +617,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h2 class="text-2xl font-bold">Intercambios y Coberturas de Turno</h2>
-            <p class="text-sm opacity-75">
+            <p class="text-sm text-base-content/85">
               Un cambio de turno se aplica cuando ambas partes están de acuerdo (el compañero acepta cubrir/intercambiar) o cuando lo aprueba un Administrador.
             </p>
           </div>
@@ -581,7 +642,7 @@
                     <span class="badge badge-sm" :class="req.type === 'cover' ? 'badge-info' : 'badge-secondary'">
                       {{ req.type === 'cover' ? '🤝 Cubrir Turno (Con compensación)' : '🔄 Trueque de Días' }}
                     </span>
-                    <span class="text-xs opacity-60">{{ formatDateShort(req.created_at.slice(0, 10)) }}</span>
+                    <span class="text-xs text-base-content/75">{{ formatDateShort(req.created_at.slice(0, 10)) }}</span>
                   </div>
 
                   <p class="text-sm">
@@ -596,11 +657,11 @@
                     </template>
                   </p>
 
-                  <p v-if="req.reason" class="text-xs italic bg-base-100 p-2 rounded border border-base-300">
+                  <p v-if="req.reason" class="text-xs italic bg-base-100 p-2 rounded border border-base-300 text-base-content">
                     Motivo: "{{ req.reason }}"
                   </p>
 
-                  <p v-if="req.type === 'cover'" class="text-xs opacity-75">
+                  <p v-if="req.type === 'cover'" class="text-xs text-base-content/85">
                     ⚖️ Al aceptar, <strong>{{ req.target_name }}</strong> sumará +1 turno realizado y <strong>{{ req.requester_name }}</strong> compensará este turno en las siguientes semanas.
                   </p>
                 </div>
@@ -662,7 +723,7 @@
           <div class="card-body p-4 sm:p-6">
             <h3 class="font-bold text-lg mb-3">Historial de Intercambios y Coberturas</h3>
 
-            <div v-if="!swapsList.length" class="text-center py-8 opacity-60 text-sm">
+            <div v-if="!swapsList.length" class="text-center py-8 text-base-content/75 text-sm">
               Aún no se han registrado solicitudes de cobertura o intercambio de turnos.
             </div>
 
@@ -682,7 +743,7 @@
                   <tr v-for="s in swapsList" :key="s.id">
                     <td class="font-medium">
                       {{ s.day_name }} {{ formatDateShort(s.shift_date) }}
-                      <div v-if="s.type === 'swap' && s.target_shift_date" class="text-xs opacity-65">
+                      <div v-if="s.type === 'swap' && s.target_shift_date" class="text-xs text-base-content/80 font-medium">
                         ⇄ {{ s.target_day_name }} {{ formatDateShort(s.target_shift_date) }}
                       </div>
                     </td>
@@ -693,7 +754,7 @@
                     </td>
                     <td>{{ s.requester_name }}</td>
                     <td>{{ s.target_name }}</td>
-                    <td class="max-w-xs truncate text-xs opacity-80">{{ s.reason || '—' }}</td>
+                    <td class="max-w-xs truncate text-xs text-base-content/90">{{ s.reason || '—' }}</td>
                     <td>
                       <span v-if="s.status === 'pending'" class="badge badge-warning badge-sm">Pendiente</span>
                       <span v-else-if="s.status === 'accepted'" class="badge badge-success badge-sm">
@@ -722,7 +783,7 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 class="text-2xl font-bold">Balance de Equidad y Compensación Semanal</h2>
-                <p class="text-sm opacity-75">
+                <p class="text-sm text-base-content/85">
                   Tanto los usuarios como los administradores participan en la lista de café. Cuando alguien cubre el turno de otro compañero o realiza un turno extraordinario de fin de semana, su conteo efectivo sube (+1), compensándose automáticamente al generar las siguientes semanas.
                 </p>
               </div>
@@ -785,7 +846,7 @@
                     <td>
                       <span
                         v-if="!stat.participates_in_coffee"
-                        class="text-xs opacity-60"
+                        class="text-xs text-base-content/75"
                       >
                         No participa actualmente
                       </span>
@@ -825,7 +886,7 @@
                 <h3 class="card-title text-lg">
                   {{ isAdmin ? '➕ Crear Nuevo Usuario' : '🔒 Permisos de Usuarios' }}
                 </h3>
-                <p v-if="!isAdmin" class="text-sm opacity-75">
+                <p v-if="!isAdmin" class="text-sm text-base-content/85">
                   Solo los usuarios con rol <strong>Admin</strong> pueden crear nuevos integrantes o modificar permisos.
                 </p>
 
@@ -910,7 +971,7 @@
                 <div class="flex items-center justify-between mb-3">
                   <div>
                     <h3 class="font-bold text-lg">Integrantes del Equipo ({{ (weekData?.equityStats || []).length }})</h3>
-                    <p class="text-xs opacity-70">
+                    <p class="text-xs text-base-content/80">
                       El Administrador también forma parte de la rotación de café por defecto.
                     </p>
                   </div>
@@ -1001,7 +1062,7 @@
         <h3 class="font-bold text-lg flex items-center gap-2">
           <span>✨ Asignar Turno Extraordinario de Café</span>
         </h3>
-        <p class="text-xs opacity-70 mt-1">
+        <p class="text-xs text-base-content/85 mt-1">
           Asigna manualmente un turno fuera de días hábiles (Sábado, Domingo o evento especial). Se suma a la carga del integrante para compensarse equitativamente.
         </p>
 
@@ -1081,7 +1142,7 @@
               Turno seleccionado:
               <strong>{{ swapModal.shift.day_name }} {{ formatDateHuman(swapModal.shift.shift_date) }}</strong>
             </div>
-            <div class="text-xs opacity-75">
+            <div class="text-xs text-base-content/85">
               Encargado actual: <strong>{{ swapModal.shift.assigned_user_name }}</strong>
             </div>
           </div>
@@ -1099,7 +1160,7 @@
                 <input v-model="swapModal.type" type="radio" value="cover" class="radio radio-primary radio-sm mt-0.5" />
                 <div class="text-xs">
                   <div class="font-bold">Un compañero me cubre</div>
-                  <div class="opacity-75">El sistema compensa el conteo de turnos en las siguientes semanas.</div>
+                  <div class="text-base-content/85">El sistema compensa el conteo de turnos en las siguientes semanas.</div>
                 </div>
               </label>
 
@@ -1110,7 +1171,7 @@
                 <input v-model="swapModal.type" type="radio" value="swap" class="radio radio-primary radio-sm mt-0.5" />
                 <div class="text-xs">
                   <div class="font-bold">Trueque de días</div>
-                  <div class="opacity-75">Cambiar mi día por el día asignado a otro compañero esta semana.</div>
+                  <div class="text-base-content/85">Cambiar mi día por el día asignado a otro compañero esta semana.</div>
                 </div>
               </label>
             </div>
@@ -1249,6 +1310,39 @@ const theme = useState<string>('sede_cafe_theme', () => 'cupcake')
 const activeTab = ref<'schedule' | 'swaps' | 'equity' | 'users'>('schedule')
 const feedbackMsg = ref('')
 const feedbackType = ref<'success' | 'error'>('success')
+
+// PWA Push Notifications
+const {
+  isSupported: pushSupported,
+  isSubscribed,
+  loading: pushLoading,
+  subscribe: subscribePush,
+  unsubscribe: unsubscribePush,
+  sendTest: sendTestPush
+} = usePushNotifications()
+
+async function handleEnablePush() {
+  const success = await subscribePush()
+  if (success) {
+    showFeedback('¡Notificaciones Push activadas en este dispositivo! 🔔')
+  } else {
+    showFeedback('No se pudo activar las notificaciones. Verifica que tu navegador permita notificaciones.', 'error')
+  }
+}
+
+async function handleDisablePush() {
+  await unsubscribePush()
+  showFeedback('Notificaciones desactivadas en este dispositivo.')
+}
+
+async function handleTestPush() {
+  try {
+    const res: any = await sendTestPush()
+    showFeedback(res.message || 'Notificación de prueba enviada.')
+  } catch (err: any) {
+    showFeedback(err?.data?.statusMessage || 'Error al enviar notificación de prueba.', 'error')
+  }
+}
 
 function showFeedback(msg: string, type: 'success' | 'error' = 'success') {
   feedbackMsg.value = msg

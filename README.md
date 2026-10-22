@@ -4,6 +4,9 @@ Aplicación web desarrollada con **Nuxt 4 (4.6.2)**, **TailwindCSS v4**, **daisy
 
 ## ✨ Características Principales
 
+- **PWA y Notificaciones Push en el Teléfono**:
+  - Aplicación instalable en teléfonos móviles como aplicación nativa (PWA).
+  - Notificaciones Push mediante Service Worker y Web Push API (VAPID): avisa cuando el café está listo, cuando se genera la semana o cuando solicitan un intercambio de turno.
 - **Asignación Semanal Equitativa (Lunes a Viernes)**:
   - Generación bajo demanda por el Administrador para la **Semana Actual** o **Próxima Semana**.
   - El algoritmo asigna 1 persona por día hábil equilibrando la **Carga Efectiva** de turnos y evitando días consecutivos.

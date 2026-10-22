@@ -7,7 +7,7 @@
           ☕
         </div>
         <h1 class="text-3xl font-extrabold tracking-tight">Sede Café</h1>
-        <p class="text-sm opacity-75 mt-1">
+        <p class="text-sm text-base-content/85 mt-1">
           Asignación semanal equitativa e intercambio de turnos de café
         </p>
       </div>

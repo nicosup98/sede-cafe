@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="coffeeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a2c1d" />
+      <stop offset="50%" stop-color="#2c1810" />
+      <stop offset="100%" stop-color="#190d09" />
+    </linearGradient>
+    <linearGradient id="cupGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fdfbf7" />
+      <stop offset="100%" stop-color="#e2d9cc" />
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="120" fill="url(#coffeeGrad)" />
+  <!-- Steam Curves -->
+  <path d="M 210 130 Q 225 100 210 70 Q 195 40 210 10" fill="none" stroke="#e0a96d" stroke-width="14" stroke-linecap="round" opacity="0.8" />
+  <path d="M 256 120 Q 271 90 256 60 Q 241 30 256 0" fill="none" stroke="#e0a96d" stroke-width="14" stroke-linecap="round" opacity="0.9" />
+  <path d="M 302 130 Q 317 100 302 70 Q 287 40 302 10" fill="none" stroke="#e0a96d" stroke-width="14" stroke-linecap="round" opacity="0.8" />
+  <!-- Coffee Cup Body -->
+  <path d="M 120 180 L 145 350 C 155 410 200 440 256 440 C 312 440 357 410 367 350 L 392 180 Z" fill="url(#cupGrad)" />
+  <!-- Coffee Liquid -->
+  <ellipse cx="256" cy="180" rx="136" ry="30" fill="#6f4e37" />
+  <ellipse cx="256" cy="180" rx="120" ry="24" fill="#4a2c1d" />
+  <!-- Cup Handle -->
+  <path d="M 375 220 C 440 220 460 310 365 330" fill="none" stroke="url(#cupGrad)" stroke-width="32" stroke-linecap="round" />
+  <!-- Coffee Bean Heart Decoration -->
+  <circle cx="256" cy="290" r="32" fill="#cba378" opacity="0.3" />
+  <text x="256" y="302" font-size="34" font-family="sans-serif" text-anchor="middle" fill="#5c3826">☕</text>
+</svg>

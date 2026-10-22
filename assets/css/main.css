@@ -1,3 +1,13 @@
 @import "tailwindcss";
 @plugin "daisyui";
 @import "daisyui/themes.css";
+
+/* Mejoras de contraste y legibilidad para el tema oscuro */
+[data-theme="coffee"] {
+  --color-base-content: oklch(96% 0.01 60); /* Texto claro de alto contraste */
+  --color-neutral-content: oklch(96% 0.01 60);
+}
+
+[data-theme="dark"] {
+  --color-base-content: oklch(98% 0.01 250);
+}
