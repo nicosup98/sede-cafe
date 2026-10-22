@@ -40,10 +40,14 @@ export default defineEventHandler(async (event) => {
           s.original_user_id,
           ou.display_name AS original_user_name,
           ou.username AS original_username,
+          ou.avatar_palette AS original_user_palette,
+          ou.avatar_variant AS original_user_variant,
           s.assigned_user_id,
           au.display_name AS assigned_user_name,
           au.username AS assigned_username,
           au.role AS assigned_user_role,
+          au.avatar_palette AS assigned_user_palette,
+          au.avatar_variant AS assigned_user_variant,
           s.covered_by_swap_id,
           s.status,
           s.notes
@@ -61,6 +65,23 @@ export default defineEventHandler(async (event) => {
     shifts = shiftsRes.rows.map(r => {
       const dow = Number(r.day_of_week)
       const isExtraordinary = dow === 0 || dow === 6 || dow === 7
+
+      let assignedPalette = ['#5c4033', '#8b5a2b', '#cd853f', '#d2b48c', '#deb887']
+      if (r.assigned_user_palette) {
+        try {
+          const p = JSON.parse(String(r.assigned_user_palette))
+          if (Array.isArray(p) && p.length > 0) assignedPalette = p
+        } catch {}
+      }
+
+      let originalPalette = ['#5c4033', '#8b5a2b', '#cd853f', '#d2b48c', '#deb887']
+      if (r.original_user_palette) {
+        try {
+          const p = JSON.parse(String(r.original_user_palette))
+          if (Array.isArray(p) && p.length > 0) originalPalette = p
+        } catch {}
+      }
+
       return {
         id: Number(r.id),
         week_id: Number(r.week_id),
@@ -70,10 +91,14 @@ export default defineEventHandler(async (event) => {
         original_user_id: Number(r.original_user_id),
         original_user_name: String(r.original_user_name),
         original_username: String(r.original_username),
+        original_user_palette: originalPalette,
+        original_user_variant: r.original_user_variant ? String(r.original_user_variant) : 'beam',
         assigned_user_id: Number(r.assigned_user_id),
         assigned_user_name: String(r.assigned_user_name),
         assigned_username: String(r.assigned_username),
         assigned_user_role: String(r.assigned_user_role),
+        assigned_user_palette: assignedPalette,
+        assigned_user_variant: r.assigned_user_variant ? String(r.assigned_user_variant) : 'beam',
         was_covered: Number(r.original_user_id) !== Number(r.assigned_user_id),
         covered_by_swap_id: r.covered_by_swap_id ? Number(r.covered_by_swap_id) : null,
         status: String(r.status),

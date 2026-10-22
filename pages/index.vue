@@ -138,7 +138,7 @@
 
         <div v-if="currentUser" class="dropdown dropdown-end">
           <div tabindex="0" role="button" class="btn btn-sm btn-ghost gap-2 border border-base-300">
-            <UserAvatar :name="currentUser.display_name" :size="28" variant="beam" />
+            <UserAvatar :name="currentUser.display_name" :size="28" :variant="currentUser.avatar_variant || 'beam'" :colors="currentUser.avatar_palette" />
             <span class="hidden sm:inline font-semibold text-xs">{{ currentUser.display_name }}</span>
             <span
               class="badge badge-xs"
@@ -150,6 +150,9 @@
           <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-50 w-56 p-2 shadow-xl border border-base-300 mt-2">
             <li class="menu-title px-3 py-1 text-xs">
               <span>Conectado como @{{ currentUser.username }}</span>
+            </li>
+            <li>
+              <button type="button" @click="openAvatarModal">🎨 Personalizar mi Avatar</button>
             </li>
             <li>
               <button type="button" @click="openPinModal">🔑 Cambiar mi PIN</button>
@@ -428,7 +431,7 @@
 
               <!-- Assigned Person -->
               <div class="py-2 flex items-center gap-3">
-                <UserAvatar :name="shift.assigned_user_name" :size="48" variant="beam" />
+                <UserAvatar :name="shift.assigned_user_name" :size="48" :variant="shift.assigned_user_variant || 'beam'" :colors="shift.assigned_user_palette" />
                 <div class="min-w-0 flex-1">
                   <div class="text-xs text-base-content/80 font-medium">Encargado del café:</div>
                   <div class="font-bold text-base truncate" :title="shift.assigned_user_name">
@@ -567,7 +570,7 @@
                   </div>
 
                   <div class="flex items-center gap-3 py-1">
-                    <UserAvatar :name="shift.assigned_user_name" :size="42" variant="beam" />
+                    <UserAvatar :name="shift.assigned_user_name" :size="42" :variant="shift.assigned_user_variant || 'beam'" :colors="shift.assigned_user_palette" />
                     <div>
                       <div class="font-bold text-sm">{{ shift.assigned_user_name }}</div>
                       <div class="text-xs text-base-content/85">
@@ -808,7 +811,7 @@
                   <tr v-for="stat in weekData?.equityStats || []" :key="stat.id">
                     <td class="font-bold">
                       <div class="flex items-center gap-2.5">
-                        <UserAvatar :name="stat.display_name" :size="32" variant="beam" />
+                        <UserAvatar :name="stat.display_name" :size="32" :variant="stat.avatar_variant || 'beam'" :colors="stat.avatar_palette" />
                         <div>
                           <span>{{ stat.display_name }}</span>
                           <span class="text-xs font-normal opacity-60 block">@{{ stat.username }}</span>
@@ -991,7 +994,7 @@
                       <tr v-for="u in weekData?.equityStats || []" :key="u.id">
                         <td>
                           <div class="flex items-center gap-2.5">
-                            <UserAvatar :name="u.display_name" :size="32" variant="beam" />
+                            <UserAvatar :name="u.display_name" :size="32" :variant="u.avatar_variant || 'beam'" :colors="u.avatar_palette" />
                             <div>
                               <div class="font-bold">{{ u.display_name }}</div>
                               <div class="text-xs opacity-60">@{{ u.username }}</div>
@@ -1178,7 +1181,7 @@
 
                   <div v-if="reminderSettings.today" class="space-y-2">
                     <div class="flex items-center gap-2">
-                      <UserAvatar :name="reminderSettings.today.display_name" :size="32" variant="beam" />
+                      <UserAvatar :name="reminderSettings.today.display_name" :size="32" :variant="reminderSettings.today.avatar_variant || 'beam'" :colors="reminderSettings.today.avatar_palette" />
                       <div>
                         <div class="font-bold text-sm">{{ reminderSettings.today.display_name }}</div>
                         <div class="text-xs text-base-content/80">@{{ reminderSettings.today.username }}</div>
@@ -1209,7 +1212,7 @@
                   <h4 class="font-bold text-sm">☕ Encargado de Mañana</h4>
                   <div v-if="reminderSettings.tomorrow" class="space-y-2">
                     <div class="flex items-center gap-2">
-                      <UserAvatar :name="reminderSettings.tomorrow.display_name" :size="32" variant="beam" />
+                      <UserAvatar :name="reminderSettings.tomorrow.display_name" :size="32" :variant="reminderSettings.tomorrow.avatar_variant || 'beam'" :colors="reminderSettings.tomorrow.avatar_palette" />
                       <div>
                         <div class="font-bold text-sm">{{ reminderSettings.tomorrow.display_name }}</div>
                         <div class="text-xs text-base-content/80">@{{ reminderSettings.tomorrow.username }}</div>
@@ -1441,6 +1444,143 @@
         </div>
       </div>
       <form method="dialog" class="modal-backdrop" @click="swapModal.open = false">
+        <button>close</button>
+      </form>
+    </dialog>
+
+    <!-- ===================================================== -->
+    <!-- MODAL: PERSONALIZAR AVATAR BORING AVATARS             -->
+    <!-- ===================================================== -->
+    <dialog class="modal" :class="{ 'modal-open': avatarModal.open }">
+      <div class="modal-box max-w-lg">
+        <h3 class="font-bold text-lg flex items-center gap-2">
+          <span>🎨</span>
+          <span>Personalizar mi Boring Avatar</span>
+        </h3>
+        <p class="text-xs text-base-content/80 mt-1">
+          Elige tu combinación de 5 colores y estilo favorito para tu avatar en Sede Café.
+        </p>
+
+        <!-- Preview Card -->
+        <div class="my-4 p-4 rounded-2xl bg-base-200 flex items-center justify-between gap-4 border border-base-300">
+          <div class="flex items-center gap-3">
+            <UserAvatar
+              :name="currentUser?.display_name || 'Usuario'"
+              :size="64"
+              :variant="avatarModal.variant"
+              :colors="avatarModal.colors"
+            />
+            <div>
+              <div class="font-bold text-base">{{ currentUser?.display_name }}</div>
+              <div class="text-xs text-base-content/70">@{{ currentUser?.username }}</div>
+              <div class="text-xs badge badge-primary badge-outline mt-1 capitalize font-medium">
+                Estilo: {{ avatarModal.variant }}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-ghost gap-1 text-xs"
+            title="Generar paleta de colores aleatoria"
+            @click="randomizePalette"
+          >
+            <span>🎲</span>
+            <span>Aleatorio</span>
+          </button>
+        </div>
+
+        <!-- Variant Selector -->
+        <div class="mb-4">
+          <label class="label py-1">
+            <span class="label-text text-xs font-bold uppercase tracking-wider text-base-content/70">
+              Estilo de Avatar
+            </span>
+          </label>
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <button
+              v-for="v in avatarVariants"
+              :key="v.id"
+              type="button"
+              class="btn btn-sm text-xs capitalize flex flex-col h-auto py-2"
+              :class="avatarModal.variant === v.id ? 'btn-primary' : 'btn-outline border-base-300'"
+              @click="avatarModal.variant = v.id"
+            >
+              <UserAvatar :name="currentUser?.display_name || 'U'" :size="24" :variant="v.id" :colors="avatarModal.colors" />
+              <span>{{ v.name }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Paletas Predefinidas -->
+        <div class="mb-4">
+          <label class="label py-1">
+            <span class="label-text text-xs font-bold uppercase tracking-wider text-base-content/70">
+              Paletas Recomendadas
+            </span>
+          </label>
+          <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+            <button
+              v-for="p in presetPalettes"
+              :key="p.name"
+              type="button"
+              class="flex items-center justify-between p-2 rounded-xl border text-left transition-all hover:border-primary"
+              :class="isPaletteSelected(p.colors) ? 'border-primary ring-2 ring-primary/30 bg-primary/5' : 'border-base-300 bg-base-100'"
+              @click="selectPresetPalette(p.colors)"
+            >
+              <span class="text-xs font-medium truncate mr-2">{{ p.name }}</span>
+              <div class="flex shrink-0 -space-x-1">
+                <span
+                  v-for="(c, i) in p.colors"
+                  :key="i"
+                  class="w-4 h-4 rounded-full border border-base-100 shadow-xs"
+                  :style="{ backgroundColor: c }"
+                ></span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Edición Individual de los 5 Colores -->
+        <div class="mb-2">
+          <label class="label py-1">
+            <span class="label-text text-xs font-bold uppercase tracking-wider text-base-content/70">
+              Editar Colores de la Paleta (5)
+            </span>
+          </label>
+          <div class="grid grid-cols-5 gap-2">
+            <div
+              v-for="(col, idx) in avatarModal.colors"
+              :key="idx"
+              class="flex flex-col items-center gap-1.5 p-2 rounded-xl bg-base-200 border border-base-300"
+            >
+              <input
+                type="color"
+                v-model="avatarModal.colors[idx]"
+                class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent p-0"
+              />
+              <span class="text-[10px] font-mono text-base-content/70 uppercase">
+                {{ avatarModal.colors[idx] }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-action">
+          <button type="button" class="btn btn-sm btn-ghost" @click="avatarModal.open = false">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-primary gap-1"
+            :disabled="savingAvatar"
+            @click="saveAvatarCustomization"
+          >
+            <span v-if="savingAvatar" class="loading loading-spinner loading-xs"></span>
+            <span>Guardar Avatar</span>
+          </button>
+        </div>
+      </div>
+      <form method="dialog" class="modal-backdrop" @click="avatarModal.open = false">
         <button>close</button>
       </form>
     </dialog>
@@ -1935,6 +2075,93 @@ async function deleteUser(user: any) {
     showFeedback(`Usuario ${user.display_name} eliminado.`)
   } catch (err: any) {
     showFeedback(err?.data?.statusMessage || 'No se pudo eliminar el usuario.', 'error')
+  }
+}
+
+// Avatar Customization Modal
+const avatarModal = reactive({
+  open: false,
+  variant: 'beam',
+  colors: ['#5c4033', '#8b5a2b', '#cd853f', '#d2b48c', '#deb887']
+})
+const savingAvatar = ref(false)
+
+const avatarVariants = [
+  { id: 'beam', name: 'Beam' },
+  { id: 'marble', name: 'Marble' },
+  { id: 'sunset', name: 'Sunset' },
+  { id: 'bauhaus', name: 'Bauhaus' },
+  { id: 'pixel', name: 'Pixel' },
+  { id: 'ring', name: 'Ring' }
+]
+
+const presetPalettes = [
+  { name: '☕ Café Clásico', colors: ['#5c4033', '#8b5a2b', '#cd853f', '#d2b48c', '#deb887'] },
+  { name: '🍫 Espresso Intenso', colors: ['#211510', '#3b2219', '#633827', '#8c533e', '#cba382'] },
+  { name: '🧁 Capuchino Canela', colors: ['#7f4f24', '#936639', '#a68a64', '#b6ad90', '#c2c5aa'] },
+  { name: '🌅 Atardecer Cálido', colors: ['#e06d53', '#f29e4c', '#efea5a', '#3f88c5', '#032b43'] },
+  { name: '🌊 Océano Profundo', colors: ['#0d3b66', '#0077b6', '#00b4d8', '#90e0ef', '#caf0f8'] },
+  { name: '🌲 Bosque Esmeralda', colors: ['#283618', '#606c38', '#dda15e', '#bc6c25', '#588157'] },
+  { name: '🍓 Frutos Rojos', colors: ['#590d22', '#800f2f', '#a4133c', '#c9184a', '#ff758f'] },
+  { name: '⚡ Neón Cyber', colors: ['#ff007f', '#7928ca', '#00f0ff', '#4ade80', '#facc15'] },
+  { name: '🌸 Pastel Nórdico', colors: ['#9c89b8', '#f0a6ca', '#efc3e6', '#f0e6ef', '#b8bedd'] },
+  { name: '🌿 Tierra y Menta', colors: ['#264653', '#2a9d8f', '#e9c46a', '#f4a261', '#e76f51'] }
+]
+
+function isPaletteSelected(colors: string[]) {
+  if (!avatarModal.colors || avatarModal.colors.length !== colors.length) return false
+  return colors.every((c, i) => c.toLowerCase() === avatarModal.colors[i]?.toLowerCase())
+}
+
+function selectPresetPalette(colors: string[]) {
+  avatarModal.colors = [...colors]
+}
+
+function randomizePalette() {
+  const letters = '0123456789abcdef'
+  avatarModal.colors = Array.from({ length: 5 }, () => {
+    let col = '#'
+    for (let i = 0; i < 6; i++) {
+      col += letters[Math.floor(Math.random() * 16)]
+    }
+    return col
+  })
+}
+
+function openAvatarModal() {
+  const user = currentUser.value as any
+  if (user) {
+    avatarModal.variant = user.avatar_variant || 'beam'
+    if (user.avatar_palette && Array.isArray(user.avatar_palette) && user.avatar_palette.length === 5) {
+      avatarModal.colors = [...user.avatar_palette]
+    } else {
+      avatarModal.colors = ['#5c4033', '#8b5a2b', '#cd853f', '#d2b48c', '#deb887']
+    }
+  }
+  avatarModal.open = true
+}
+
+async function saveAvatarCustomization() {
+  savingAvatar.value = true
+  try {
+    const res = await $fetch<{ ok: boolean; avatar_palette: string[]; avatar_variant: string }>('/api/users/avatar', {
+      method: 'PUT',
+      body: {
+        colors: avatarModal.colors,
+        variant: avatarModal.variant
+      }
+    })
+    if (currentUser.value) {
+      currentUser.value.avatar_palette = res.avatar_palette
+      currentUser.value.avatar_variant = res.avatar_variant
+    }
+    await Promise.all([refreshWeek(), refreshAuth()])
+    avatarModal.open = false
+    showFeedback('¡Tu avatar y paleta de colores se guardaron correctamente! 🎨')
+  } catch (err: any) {
+    showFeedback(err?.data?.statusMessage || 'Error al guardar los colores del avatar.', 'error')
+  } finally {
+    savingAvatar.value = false
   }
 }
 

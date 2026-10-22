@@ -72,6 +72,8 @@ async function initSchema(db: Client) {
       role TEXT NOT NULL DEFAULT 'user',
       participates_in_coffee INTEGER NOT NULL DEFAULT 1,
       manual_balance_adjustment INTEGER NOT NULL DEFAULT 0,
+      avatar_palette TEXT DEFAULT '["#5c4033","#8b5a2b","#cd853f","#d2b48c","#deb887"]',
+      avatar_variant TEXT DEFAULT 'beam',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -124,6 +126,18 @@ async function initSchema(db: Client) {
       updated_at TEXT DEFAULT (datetime('now'))
     );
   `)
+
+  // Safe migrations for newly added columns
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN avatar_palette TEXT DEFAULT '["#5c4033","#8b5a2b","#cd853f","#d2b48c","#deb887"]'`)
+  } catch {
+    // Column already exists
+  }
+  try {
+    await db.execute(`ALTER TABLE users ADD COLUMN avatar_variant TEXT DEFAULT 'beam'`)
+  } catch {
+    // Column already exists
+  }
 
   // Seed default users if database is empty
   const existing = await db.execute('SELECT COUNT(*) as count FROM users')

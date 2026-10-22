@@ -50,6 +50,20 @@ export default defineEventHandler(async (event) => {
     args: [newUsername, newDisplayName, newRole, newParticipates, newAdjustment, id]
   })
 
+  if (body?.avatar_palette && Array.isArray(body.avatar_palette) && body.avatar_palette.length === 5) {
+    await db.execute({
+      sql: 'UPDATE users SET avatar_palette = ? WHERE id = ?',
+      args: [JSON.stringify(body.avatar_palette), id]
+    })
+  }
+
+  if (body?.avatar_variant && typeof body.avatar_variant === 'string') {
+    await db.execute({
+      sql: 'UPDATE users SET avatar_variant = ? WHERE id = ?',
+      args: [body.avatar_variant, id]
+    })
+  }
+
   if (body?.pin && String(body.pin).trim().length >= 4) {
     const newPinHash = hashPin(String(body.pin).trim())
     await db.execute({

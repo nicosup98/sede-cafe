@@ -23,6 +23,8 @@ export interface UserEquityStat {
   net_cover_balance: number
   effective_load: number
   last_shift_date: string | null
+  avatar_palette: string[]
+  avatar_variant: string
 }
 
 const DAY_NAMES: Record<number, string> = {
@@ -80,6 +82,8 @@ export async function getUserEquityStats(): Promise<UserEquityStat[]> {
       u.role,
       u.participates_in_coffee,
       u.manual_balance_adjustment,
+      u.avatar_palette,
+      u.avatar_variant,
       COALESCE(SUM(CASE WHEN s.original_user_id = u.id AND s.status != 'skipped' THEN 1 ELSE 0 END), 0) AS original_shifts_count,
       COALESCE(SUM(CASE WHEN s.assigned_user_id = u.id AND s.status != 'skipped' THEN 1 ELSE 0 END), 0) AS assigned_shifts_count,
       COALESCE(SUM(CASE WHEN s.assigned_user_id = u.id AND s.status = 'completed' THEN 1 ELSE 0 END), 0) AS completed_shifts_count,
@@ -100,6 +104,14 @@ export async function getUserEquityStats(): Promise<UserEquityStat[]> {
     const coversReceived = Number(row.covers_received ?? 0)
     const manualAdj = Number(row.manual_balance_adjustment ?? 0)
 
+    let palette = ['#5c4033', '#8b5a2b', '#cd853f', '#d2b48c', '#deb887']
+    if (row.avatar_palette) {
+      try {
+        const parsed = JSON.parse(String(row.avatar_palette))
+        if (Array.isArray(parsed) && parsed.length > 0) palette = parsed
+      } catch {}
+    }
+
     return {
       id: Number(row.id),
       username: String(row.username),
@@ -114,7 +126,9 @@ export async function getUserEquityStats(): Promise<UserEquityStat[]> {
       covers_received: coversReceived,
       net_cover_balance: coversGiven - coversReceived,
       effective_load: assignedCount + manualAdj,
-      last_shift_date: row.last_shift_date ? String(row.last_shift_date) : null
+      last_shift_date: row.last_shift_date ? String(row.last_shift_date) : null,
+      avatar_palette: palette,
+      avatar_variant: row.avatar_variant ? String(row.avatar_variant) : 'beam'
     }
   })
 }

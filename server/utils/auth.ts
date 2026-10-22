@@ -9,6 +9,8 @@ export interface SessionUser {
   role: 'admin' | 'user'
   participates_in_coffee: boolean
   manual_balance_adjustment: number
+  avatar_palette?: string[]
+  avatar_variant?: string
 }
 
 const COOKIE_NAME = 'sede_cafe_session'
@@ -72,12 +74,20 @@ export async function getCurrentUser(event: H3Event): Promise<SessionUser | null
 
     const db = await useDb()
     const res = await db.execute({
-      sql: 'SELECT id, username, display_name, role, participates_in_coffee, manual_balance_adjustment FROM users WHERE id = ?',
+      sql: 'SELECT id, username, display_name, role, participates_in_coffee, manual_balance_adjustment, avatar_palette, avatar_variant FROM users WHERE id = ?',
       args: [data.userId]
     })
 
     const row = res.rows[0]
     if (!row) return null
+
+    let palette = ['#5c4033', '#8b5a2b', '#cd853f', '#d2b48c', '#deb887']
+    if (row.avatar_palette) {
+      try {
+        const parsed = JSON.parse(String(row.avatar_palette))
+        if (Array.isArray(parsed) && parsed.length > 0) palette = parsed
+      } catch {}
+    }
 
     return {
       id: Number(row.id),
@@ -85,7 +95,9 @@ export async function getCurrentUser(event: H3Event): Promise<SessionUser | null
       display_name: String(row.display_name),
       role: (row.role === 'admin' ? 'admin' : 'user'),
       participates_in_coffee: Boolean(Number(row.participates_in_coffee)),
-      manual_balance_adjustment: Number(row.manual_balance_adjustment ?? 0)
+      manual_balance_adjustment: Number(row.manual_balance_adjustment ?? 0),
+      avatar_palette: palette,
+      avatar_variant: (row.avatar_variant ? String(row.avatar_variant) : 'beam')
     }
   } catch {
     return null
