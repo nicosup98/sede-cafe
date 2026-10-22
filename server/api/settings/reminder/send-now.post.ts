@@ -1,8 +1,8 @@
-import dayjs from 'dayjs'
 import { requireAdmin } from '../../../utils/auth'
 import { useDb } from '../../../utils/db'
 import { getReminderConfig } from '../../../utils/settings'
 import { sendPushToUser } from '../../../utils/notifications'
+import { getTodayCaracasDate, getTomorrowCaracasDate } from '../../../utils/time'
 
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
@@ -10,8 +10,8 @@ export default defineEventHandler(async (event) => {
   const target = body?.target === 'tomorrow' ? 'tomorrow' : 'today'
 
   const dateStr = target === 'tomorrow'
-    ? dayjs().add(1, 'day').format('YYYY-MM-DD')
-    : dayjs().format('YYYY-MM-DD')
+    ? getTomorrowCaracasDate()
+    : getTodayCaracasDate()
 
   const db = await useDb()
   const shiftRes = await db.execute({

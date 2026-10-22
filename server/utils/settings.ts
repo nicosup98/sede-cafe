@@ -7,6 +7,7 @@ export interface ReminderConfig {
   reminder_message: string
   notify_day_before: boolean
   day_before_time: string
+  timezone: string
 }
 
 export const DEFAULT_SETTINGS: Record<string, string> = {
@@ -15,7 +16,8 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   reminder_title: '☕ ¡Hoy te toca hacer el café!',
   reminder_message: 'Hola {nombre}, hoy es tu turno de preparar el café para el equipo.',
   notify_day_before: 'false',
-  day_before_time: '17:00'
+  day_before_time: '17:00',
+  timezone: 'America/Caracas'
 }
 
 export async function getReminderConfig(): Promise<ReminderConfig> {
@@ -32,7 +34,8 @@ export async function getReminderConfig(): Promise<ReminderConfig> {
     reminder_title: map.get('reminder_title') ?? DEFAULT_SETTINGS.reminder_title,
     reminder_message: map.get('reminder_message') ?? DEFAULT_SETTINGS.reminder_message,
     notify_day_before: (map.get('notify_day_before') ?? DEFAULT_SETTINGS.notify_day_before) === 'true',
-    day_before_time: map.get('day_before_time') ?? DEFAULT_SETTINGS.day_before_time
+    day_before_time: map.get('day_before_time') ?? DEFAULT_SETTINGS.day_before_time,
+    timezone: map.get('timezone') ?? DEFAULT_SETTINGS.timezone
   }
 }
 
@@ -57,6 +60,9 @@ export async function saveReminderConfig(config: Partial<ReminderConfig>) {
   }
   if (typeof config.day_before_time === 'string') {
     entries.push(['day_before_time', config.day_before_time.trim()])
+  }
+  if (typeof config.timezone === 'string') {
+    entries.push(['timezone', config.timezone.trim()])
   }
 
   for (const [key, value] of entries) {

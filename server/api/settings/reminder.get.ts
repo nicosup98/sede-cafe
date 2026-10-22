@@ -1,15 +1,15 @@
-import dayjs from 'dayjs'
 import { requireUser } from '../../utils/auth'
 import { useDb } from '../../utils/db'
 import { getReminderConfig } from '../../utils/settings'
+import { getTodayCaracasDate, getTomorrowCaracasDate } from '../../utils/time'
 
 export default defineEventHandler(async (event) => {
   await requireUser(event)
   const db = await useDb()
   const config = await getReminderConfig()
 
-  const todayStr = dayjs().format('YYYY-MM-DD')
-  const tomorrowStr = dayjs().add(1, 'day').format('YYYY-MM-DD')
+  const todayStr = getTodayCaracasDate()
+  const tomorrowStr = getTomorrowCaracasDate()
 
   // Query shift for today
   const todayRes = await db.execute({

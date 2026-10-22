@@ -1060,14 +1060,17 @@
           <div class="card-body p-5 sm:p-6 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-base-200 pb-3">
               <div>
-                <h3 class="font-bold text-lg flex items-center gap-2">
+                <h3 class="font-bold text-lg flex flex-wrap items-center gap-2">
                   <span>⏰ Notificaciones Automáticas para el Encargado del Café</span>
                   <span class="badge badge-sm" :class="reminderSettings.config.reminder_enabled ? 'badge-success' : 'badge-ghost'">
                     {{ reminderSettings.config.reminder_enabled ? 'Activado' : 'Desactivado' }}
                   </span>
+                  <span class="badge badge-sm badge-outline gap-1 font-mono text-[11px]">
+                    📍 America/Caracas (UTC-4)
+                  </span>
                 </h3>
                 <p class="text-xs text-base-content/85">
-                  Configura el aviso push automático para notificar al teléfono de quien le toque hacer el café en su día asignado.
+                  Configura el aviso push automático para notificar al teléfono de quien le toque hacer el café en su día asignado con horario de Caracas.
                 </p>
               </div>
             </div>
@@ -1091,13 +1094,14 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div class="form-control">
                     <label class="label py-1">
-                      <span class="label-text text-xs font-semibold">Hora de la notificación (Mismo día)</span>
+                      <span class="label-text text-xs font-semibold">Hora de la notificación (Mismo día - Caracas)</span>
                     </label>
                     <input
                       v-model="reminderSettings.config.reminder_time"
                       type="time"
                       class="input input-bordered input-sm w-full"
                     />
+                    <span class="text-[10px] text-base-content/70 mt-1">Hora local de Venezuela (VET, UTC-4)</span>
                   </div>
 
                   <div class="form-control">
@@ -1142,13 +1146,14 @@
 
                   <div v-if="reminderSettings.config.notify_day_before" class="form-control mt-2 max-w-xs">
                     <label class="label py-1">
-                      <span class="label-text text-xs font-semibold">Hora del aviso previo (Día anterior)</span>
+                      <span class="label-text text-xs font-semibold">Hora del aviso previo (Día anterior - Caracas)</span>
                     </label>
                     <input
                       v-model="reminderSettings.config.day_before_time"
                       type="time"
                       class="input input-bordered input-sm"
                     />
+                    <span class="text-[10px] text-base-content/70 mt-1">Hora local de Venezuela (VET, UTC-4)</span>
                   </div>
                 </div>
 
@@ -1675,7 +1680,8 @@ const reminderSettings = reactive({
     reminder_title: '☕ ¡Hoy te toca hacer el café!',
     reminder_message: 'Hola {nombre}, hoy es tu turno de preparar el café para el equipo.',
     notify_day_before: false,
-    day_before_time: '17:00'
+    day_before_time: '17:00',
+    timezone: 'America/Caracas'
   },
   today: null as any,
   tomorrow: null as any
@@ -2223,7 +2229,8 @@ dayjs.locale('es')
 
 function isToday(dateStr: string): boolean {
   if (!dateStr) return false
-  return dayjs(dateStr).isSame(dayjs(), 'day')
+  const todayCaracas = dayjs().tz('America/Caracas').format('YYYY-MM-DD')
+  return dateStr === todayCaracas
 }
 
 function formatDateShort(dateStr?: string | null): string {
