@@ -19,11 +19,11 @@
 
       <!-- Center Tabs (Desktop) -->
       <div class="navbar-center hidden lg:flex">
-        <div role="tablist" class="tabs tabs-boxed bg-base-200 p-1">
+        <div role="tablist" class="tabs tabs-boxed rounded-full bg-base-200/90 p-1.5 border border-base-300 shadow-inner gap-1">
           <button
             role="tab"
-            class="tab gap-1.5 font-medium"
-            :class="{ 'tab-active': activeTab === 'schedule' }"
+            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
+            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'schedule' }"
             @click="activeTab = 'schedule'"
           >
             <span>📅</span>
@@ -31,8 +31,8 @@
           </button>
           <button
             role="tab"
-            class="tab gap-1.5 font-medium"
-            :class="{ 'tab-active': activeTab === 'swaps' }"
+            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
+            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'swaps' }"
             @click="activeTab = 'swaps'"
           >
             <span>🔄</span>
@@ -43,8 +43,8 @@
           </button>
           <button
             role="tab"
-            class="tab gap-1.5 font-medium"
-            :class="{ 'tab-active': activeTab === 'equity' }"
+            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
+            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'equity' }"
             @click="activeTab = 'equity'"
           >
             <span>⚖️</span>
@@ -52,8 +52,8 @@
           </button>
           <button
             role="tab"
-            class="tab gap-1.5 font-medium"
-            :class="{ 'tab-active': activeTab === 'users' }"
+            class="tab rounded-full gap-1.5 font-medium px-4 transition-all duration-200"
+            :class="{ 'tab-active !rounded-full shadow-sm': activeTab === 'users' }"
             @click="activeTab = 'users'"
           >
             <span>👥</span>
@@ -166,18 +166,18 @@
     </header>
 
     <!-- Mobile Navigation Tabs -->
-    <div class="lg:hidden bg-base-100 border-b border-base-300 px-2 py-1.5 overflow-x-auto">
-      <div class="flex gap-1 min-w-max">
+    <div class="lg:hidden bg-base-100 border-b border-base-300 px-3 py-2 overflow-x-auto">
+      <div class="flex gap-1.5 min-w-max bg-base-200/80 p-1 rounded-full border border-base-300 shadow-inner">
         <button
-          class="btn btn-xs"
-          :class="activeTab === 'schedule' ? 'btn-primary' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3 transition-all font-medium"
+          :class="activeTab === 'schedule' ? 'btn-primary shadow-xs' : 'btn-ghost'"
           @click="activeTab = 'schedule'"
         >
           📅 Calendario
         </button>
         <button
-          class="btn btn-xs"
-          :class="activeTab === 'swaps' ? 'btn-primary' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3 transition-all font-medium"
+          :class="activeTab === 'swaps' ? 'btn-primary shadow-xs' : 'btn-ghost'"
           @click="activeTab = 'swaps'"
         >
           🔄 Intercambios
@@ -186,15 +186,15 @@
           </span>
         </button>
         <button
-          class="btn btn-xs"
-          :class="activeTab === 'equity' ? 'btn-primary' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3 transition-all font-medium"
+          :class="activeTab === 'equity' ? 'btn-primary shadow-xs' : 'btn-ghost'"
           @click="activeTab = 'equity'"
         >
           ⚖️ Equidad
         </button>
         <button
-          class="btn btn-xs"
-          :class="activeTab === 'users' ? 'btn-primary' : 'btn-ghost'"
+          class="btn btn-xs rounded-full px-3 transition-all font-medium"
+          :class="activeTab === 'users' ? 'btn-primary shadow-xs' : 'btn-ghost'"
           @click="activeTab = 'users'"
         >
           👥 Usuarios
