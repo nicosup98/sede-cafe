@@ -97,11 +97,15 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  sendPushToUser(requesterId, {
-    title: '✅ Cambio de turno aceptado',
-    body: `${user.display_name} ha aceptado el cambio de turno. El calendario ha sido actualizado.`,
-    url: '/'
-  }).catch(() => {})
+  try {
+    await sendPushToUser(requesterId, {
+      title: '✅ Cambio de turno aceptado',
+      body: `${user.display_name} ha aceptado el cambio de turno. El calendario ha sido actualizado.`,
+      url: '/'
+    })
+  } catch (err) {
+    console.error('Error enviando notificación push de cambio aceptado:', err)
+  }
 
   return { ok: true, status: finalStatus }
 })

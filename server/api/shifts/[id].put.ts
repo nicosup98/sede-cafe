@@ -50,11 +50,15 @@ export default defineEventHandler(async (event) => {
   })
 
   if (newStatus === 'completed' && shift.status !== 'completed') {
-    sendPushToAll({
-      title: '☕ ¡El café está listo!',
-      body: `${user.display_name} acaba de preparar y marcar listo el café. ¡Pasa por el tuyo!`,
-      url: '/'
-    }).catch(() => {})
+    try {
+      await sendPushToAll({
+        title: '☕ ¡El café está listo!',
+        body: `${user.display_name} acaba de preparar y marcar listo el café. ¡Pasa por el tuyo!`,
+        url: '/'
+      })
+    } catch (err) {
+      console.error('Error enviando notificación de café listo:', err)
+    }
   }
 
   return { ok: true, status: newStatus, notes: newNotes }

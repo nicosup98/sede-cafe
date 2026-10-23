@@ -110,11 +110,15 @@ export default defineEventHandler(async (event) => {
     args: [type, shiftId, targetShiftId, shiftOwnerId, targetUserId, reason]
   })
 
-  sendPushToUser(targetUserId, {
-    title: '🔄 Solicitud de cambio de café',
-    body: `${user.display_name} te ha enviado una solicitud para ${type === 'cover' ? 'cubrir su turno' : 'intercambiar un turno'} de café.`,
-    url: '/?tab=swaps'
-  }).catch(() => {})
+  try {
+    await sendPushToUser(targetUserId, {
+      title: '🔄 Solicitud de cambio de café',
+      body: `${user.display_name} te ha enviado una solicitud para ${type === 'cover' ? 'cubrir su turno' : 'intercambiar un turno'} de café.`,
+      url: '/?tab=swaps'
+    })
+  } catch (err) {
+    console.error('Error enviando notificación push de solicitud de cambio:', err)
+  }
 
   return {
     ok: true,

@@ -27,7 +27,11 @@ self.addEventListener('push', (event) => {
     body: data.body || '',
     icon: '/icon.svg',
     badge: '/icon.svg',
-    vibrate: [200, 100, 200],
+    vibrate: [200, 100, 200, 100, 200],
+    tag: data.tag || 'sede-cafe-' + Date.now(),
+    renotify: true,
+    requireInteraction: false,
+    timestamp: Date.now(),
     data: {
       url: data.url || '/'
     },

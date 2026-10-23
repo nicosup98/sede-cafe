@@ -40,6 +40,14 @@ export async function sendPushToUser(userId: number, payload: PushPayload) {
     args: [userId]
   })
 
+  const pushOptions: webpush.RequestOptions = {
+    TTL: 86400, // 24 hours
+    urgency: 'high',
+    headers: {
+      Urgency: 'high'
+    }
+  }
+
   const results = await Promise.allSettled(
     subsRes.rows.map(async (sub) => {
       const subId = Number(sub.id)
@@ -52,7 +60,7 @@ export async function sendPushToUser(userId: number, payload: PushPayload) {
       }
 
       try {
-        await webpush.sendNotification(pushConfig, JSON.stringify(payload))
+        await webpush.sendNotification(pushConfig, JSON.stringify(payload), pushOptions)
       } catch (err: any) {
         if (err.statusCode === 410 || err.statusCode === 404) {
           // Subscription expired or unregistered -> cleanup
@@ -83,6 +91,14 @@ export async function sendPushToAll(payload: PushPayload, excludeUserId?: number
 
   const subsRes = await db.execute({ sql, args })
 
+  const pushOptions: webpush.RequestOptions = {
+    TTL: 86400, // 24 hours
+    urgency: 'high',
+    headers: {
+      Urgency: 'high'
+    }
+  }
+
   const results = await Promise.allSettled(
     subsRes.rows.map(async (sub) => {
       const subId = Number(sub.id)
@@ -95,7 +111,7 @@ export async function sendPushToAll(payload: PushPayload, excludeUserId?: number
       }
 
       try {
-        await webpush.sendNotification(pushConfig, JSON.stringify(payload))
+        await webpush.sendNotification(pushConfig, JSON.stringify(payload), pushOptions)
       } catch (err: any) {
         if (err.statusCode === 410 || err.statusCode === 404) {
           await db.execute({
