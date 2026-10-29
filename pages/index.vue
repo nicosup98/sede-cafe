@@ -62,6 +62,17 @@
           <button
             role="tab"
             class="rounded-full gap-2 font-medium px-4 py-1.5 text-xs inline-flex items-center justify-center transition-all duration-300 ease-out transform active:scale-95 cursor-pointer select-none"
+            :class="activeTab === 'reviews'
+              ? 'bg-primary text-primary-content shadow-md font-bold scale-[1.02]'
+              : 'text-base-content/75 hover:text-base-content hover:bg-base-300/60'"
+            @click="activeTab = 'reviews'"
+          >
+            <span>⭐</span>
+            <span>Baristas & Reseñas</span>
+          </button>
+          <button
+            role="tab"
+            class="rounded-full gap-2 font-medium px-4 py-1.5 text-xs inline-flex items-center justify-center transition-all duration-300 ease-out transform active:scale-95 cursor-pointer select-none"
             :class="activeTab === 'users'
               ? 'bg-primary text-primary-content shadow-md font-bold scale-[1.02]'
               : 'text-base-content/75 hover:text-base-content hover:bg-base-300/60'"
@@ -202,6 +213,13 @@
           @click="activeTab = 'equity'"
         >
           ⚖️ Equidad
+        </button>
+        <button
+          class="btn btn-xs rounded-full px-3.5 transition-all duration-300 ease-out font-medium active:scale-95"
+          :class="activeTab === 'reviews' ? 'btn-primary shadow-sm font-bold scale-[1.02]' : 'btn-ghost text-base-content/75'"
+          @click="activeTab = 'reviews'"
+        >
+          ⭐ Reseñas
         </button>
         <button
           class="btn btn-xs rounded-full px-3.5 transition-all duration-300 ease-out font-medium active:scale-95"
@@ -556,6 +574,18 @@
               <div v-if="shift.notes" class="text-xs italic text-base-content/90 bg-base-200 border border-base-300 p-2 rounded">
                 "{{ shift.notes }}"
               </div>
+
+              <!-- Coffee Review / Rating summary pill in card body -->
+              <div
+                v-if="shift.status === 'completed' && shift.reviews_count > 0"
+                class="bg-amber-500/10 border border-amber-500/20 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-xs"
+              >
+                <span class="text-[11px] font-semibold text-amber-700 dark:text-amber-300">Nota del café:</span>
+                <div class="flex items-center gap-1">
+                  <StarRating :modelValue="shift.average_rating" :readonly="true" size="xs" />
+                  <span class="font-mono font-bold text-amber-500 text-xs">({{ shift.reviews_count }})</span>
+                </div>
+              </div>
             </div>
 
             <!-- Card Footer Actions -->
@@ -570,6 +600,26 @@
               >
                 <span v-if="shift.status === 'completed'">✓ Café Realizado (Desmarcar)</span>
                 <span v-else>☕ Marcar Café Listo</span>
+              </button>
+
+              <!-- Botón Calificar Café (colocado justo debajo de Café Realizado) -->
+              <button
+                v-if="shift.status === 'completed'"
+                type="button"
+                class="btn btn-sm sm:btn-xs w-full rounded-full active:scale-95 transition-all font-semibold shadow-xs flex items-center justify-center gap-1.5"
+                :class="shift.my_review ? 'btn-outline border-amber-400 text-amber-600 dark:text-amber-400 hover:bg-amber-400 hover:text-black' : 'btn-warning'"
+                @click="openShiftReviewModal(shift)"
+              >
+                <span>⭐</span>
+                <span v-if="shift.assigned_user_id === currentUser?.id">
+                  Ver opiniones de mi café {{ shift.reviews_count > 0 ? `(${shift.average_rating} ⭐ · ${shift.reviews_count})` : '' }}
+                </span>
+                <span v-else-if="shift.my_review">
+                  Mi nota: {{ shift.my_review.rating }} ⭐ {{ shift.reviews_count > 1 ? `(Media: ${shift.average_rating} ⭐)` : '' }}
+                </span>
+                <span v-else>
+                  Calificar café {{ shift.reviews_count > 0 ? `(${shift.average_rating} ⭐ · ${shift.reviews_count})` : '' }}
+                </span>
               </button>
 
               <!-- Request Cover / Swap Button (Owner or Admin) -->
@@ -656,28 +706,62 @@
                   <p v-if="shift.notes" class="text-xs italic bg-base-100 p-2 rounded border border-base-300 text-base-content/95">
                     "{{ shift.notes }}"
                   </p>
+
+                  <!-- Coffee Review summary badge if completed -->
+                  <div
+                    v-if="shift.status === 'completed' && shift.reviews_count > 0"
+                    class="bg-amber-500/10 border border-amber-500/20 rounded-xl px-2 py-1 flex items-center justify-between text-xs"
+                  >
+                    <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-300">Nota:</span>
+                    <div class="flex items-center gap-1">
+                      <StarRating :modelValue="shift.average_rating" :readonly="true" size="xs" />
+                      <span class="font-mono font-bold text-amber-500 text-xs">({{ shift.reviews_count }})</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div class="flex items-center gap-2 pt-2 border-t border-base-300">
-                  <button
-                    v-if="shift.assigned_user_id === currentUser?.id || isAdmin"
-                    type="button"
-                    class="btn btn-sm sm:btn-xs flex-1 rounded-full active:scale-95 transition-all font-semibold"
-                    :class="shift.status === 'completed' ? 'btn-outline btn-success' : 'btn-success'"
-                    @click="toggleShiftCompleted(shift)"
-                  >
-                    <span v-if="shift.status === 'completed'">✓ Listo (Desmarcar)</span>
-                    <span v-else>☕ Marcar Café Listo</span>
-                  </button>
+                <div class="flex flex-col gap-1.5 pt-2 border-t border-base-300">
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-if="shift.assigned_user_id === currentUser?.id || isAdmin"
+                      type="button"
+                      class="btn btn-sm sm:btn-xs flex-1 rounded-full active:scale-95 transition-all font-semibold"
+                      :class="shift.status === 'completed' ? 'btn-outline btn-success' : 'btn-success'"
+                      @click="toggleShiftCompleted(shift)"
+                    >
+                      <span v-if="shift.status === 'completed'">✓ Listo (Desmarcar)</span>
+                      <span v-else>☕ Marcar Café Listo</span>
+                    </button>
 
+                    <button
+                      v-if="isAdmin"
+                      type="button"
+                      class="btn btn-xs btn-ghost text-error"
+                      title="Eliminar turno extraordinario"
+                      @click="deleteExtraordinaryShift(shift)"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+
+                  <!-- Botón Calificar debajo de Listo -->
                   <button
-                    v-if="isAdmin"
+                    v-if="shift.status === 'completed'"
                     type="button"
-                    class="btn btn-xs btn-ghost text-error"
-                    title="Eliminar turno extraordinario"
-                    @click="deleteExtraordinaryShift(shift)"
+                    class="btn btn-xs w-full rounded-full active:scale-95 transition-all font-semibold shadow-xs flex items-center justify-center gap-1"
+                    :class="shift.my_review ? 'btn-outline border-amber-400 text-amber-600 dark:text-amber-400' : 'btn-warning'"
+                    @click="openShiftReviewModal(shift)"
                   >
-                    🗑️
+                    <span>⭐</span>
+                    <span v-if="shift.assigned_user_id === currentUser?.id">
+                      Ver opiniones {{ shift.reviews_count > 0 ? `(${shift.average_rating} ⭐)` : '' }}
+                    </span>
+                    <span v-else-if="shift.my_review">
+                      Mi nota: {{ shift.my_review.rating }} ⭐
+                    </span>
+                    <span v-else>
+                      Calificar café {{ shift.reviews_count > 0 ? `(${shift.average_rating} ⭐)` : '' }}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1310,6 +1394,412 @@
           </div>
         </div>
       </section>
+
+      <!-- ===================================================== -->
+      <!-- TAB 5: BARISTAS & RESEÑAS                             -->
+      <!-- ===================================================== -->
+      <section v-else-if="activeTab === 'reviews'" key="reviews" class="space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-2xl font-bold flex items-center gap-2">
+              <span>☕</span>
+              <span>Baristas, Calificaciones y Reseñas</span>
+            </h2>
+            <p class="text-sm text-base-content/85">
+              Consulta las calificaciones individuales de cada café, la media general de cada integrante y todos los comentarios dejados por el equipo.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-ghost gap-1.5 self-start sm:self-auto border border-base-300"
+            @click="refreshReviewsSummary"
+          >
+            <span>🔄</span>
+            <span>Actualizar</span>
+          </button>
+        </div>
+
+        <!-- Global Metrics / Highlights Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Top Barista -->
+          <div class="card bg-base-100 shadow-sm border border-amber-400/40 bg-gradient-to-br from-amber-500/5 to-transparent">
+            <div class="card-body p-4 flex flex-row items-center gap-3">
+              <div class="text-3xl">🏆</div>
+              <div class="min-w-0 flex-1">
+                <div class="text-xs text-base-content/75 font-semibold uppercase tracking-wider">
+                  Barista Mejor Puntuado
+                </div>
+                <div v-if="reviewsSummary?.stats?.top_barista" class="flex items-center gap-2 mt-1">
+                  <UserAvatar
+                    :name="reviewsSummary.stats.top_barista.display_name"
+                    :size="28"
+                    :variant="reviewsSummary.stats.top_barista.avatar_variant || 'beam'"
+                    :colors="reviewsSummary.stats.top_barista.avatar_palette"
+                  />
+                  <div class="truncate font-bold text-sm">
+                    {{ reviewsSummary.stats.top_barista.display_name }}
+                  </div>
+                  <span class="badge badge-warning badge-sm font-extrabold font-mono">
+                    {{ reviewsSummary.stats.top_barista.average_rating }} ⭐
+                  </span>
+                </div>
+                <div v-else class="text-xs text-base-content/60 italic mt-1">
+                  Aún sin calificaciones
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Team Average Rating -->
+          <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body p-4 flex flex-row items-center gap-3">
+              <div class="text-3xl">⭐</div>
+              <div>
+                <div class="text-xs text-base-content/75 font-semibold uppercase tracking-wider">
+                  Media General del Equipo
+                </div>
+                <div class="flex items-baseline gap-2 mt-0.5">
+                  <span class="text-2xl font-black font-mono text-amber-500">
+                    {{ reviewsSummary?.stats?.team_average_rating ? reviewsSummary.stats.team_average_rating + ' / 5.0' : '-' }}
+                  </span>
+                  <StarRating
+                    v-if="reviewsSummary?.stats?.team_average_rating"
+                    :modelValue="reviewsSummary.stats.team_average_rating"
+                    :readonly="true"
+                    :showValue="false"
+                    size="sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Reviews Recorded -->
+          <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body p-4 flex flex-row items-center gap-3">
+              <div class="text-3xl">💬</div>
+              <div>
+                <div class="text-xs text-base-content/75 font-semibold uppercase tracking-wider">
+                  Total de Opiniones Dejadas
+                </div>
+                <div class="text-2xl font-black font-mono mt-0.5 text-base-content">
+                  {{ reviewsSummary?.stats?.total_reviews_count || 0 }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-Tabs Navigation Bar & Filter Controls -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-base-100 p-2.5 rounded-2xl border border-base-300 shadow-2xs">
+          <!-- Sub-Tab Pills -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              class="btn btn-sm rounded-xl font-bold transition-all active:scale-95"
+              :class="reviewsSubTab === 'baristas' ? 'btn-primary shadow-xs' : 'btn-ghost text-base-content/75'"
+              @click="reviewsSubTab = 'baristas'"
+            >
+              <span>🏆</span>
+              <span>1. Medias de Baristas</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm rounded-xl font-bold transition-all active:scale-95"
+              :class="reviewsSubTab === 'individual' ? 'btn-primary shadow-xs' : 'btn-ghost text-base-content/75'"
+              @click="reviewsSubTab = 'individual'"
+            >
+              <span>☕</span>
+              <span>2. Cafés Individuales ({{ filteredIndividualCoffees.length }})</span>
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm rounded-xl font-bold transition-all active:scale-95"
+              :class="reviewsSubTab === 'comments' ? 'btn-primary shadow-xs' : 'btn-ghost text-base-content/75'"
+              @click="reviewsSubTab = 'comments'"
+            >
+              <span>💬</span>
+              <span>3. Todos los Comentarios ({{ filteredAllComments.length }})</span>
+            </button>
+          </div>
+
+          <!-- Filter by Barista -->
+          <div class="flex items-center gap-2 self-end md:self-auto">
+            <span class="text-xs text-base-content/75 font-semibold">Filtrar por barista:</span>
+            <select
+              v-model="reviewsFilterBarista"
+              class="select select-bordered select-sm rounded-xl text-xs font-semibold"
+            >
+              <option value="all">Todos los baristas</option>
+              <option
+                v-for="b in reviewsSummary?.baristas || []"
+                :key="b.id"
+                :value="b.id"
+              >
+                {{ b.display_name }} ({{ b.average_rating ? b.average_rating + ' ⭐' : 'Sin nota' }})
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- SUB-VISTA 1: MEDIAS GENERALES DE LOS USUARIOS         -->
+        <!-- ===================================================== -->
+        <div v-if="reviewsSubTab === 'baristas'" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div
+              v-for="barista in (reviewsFilterBarista === 'all' ? (reviewsSummary?.baristas || []) : (reviewsSummary?.baristas || []).filter(b => b.id === reviewsFilterBarista))"
+              :key="barista.id"
+              class="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-all flex flex-col justify-between"
+            >
+              <div class="card-body p-5 space-y-4">
+                <!-- Barista Header -->
+                <div class="flex items-center gap-3.5">
+                  <UserAvatar
+                    :name="barista.display_name"
+                    :size="52"
+                    :variant="barista.avatar_variant || 'beam'"
+                    :colors="barista.avatar_palette"
+                  />
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5">
+                      <h3 class="font-bold text-base truncate" :title="barista.display_name">
+                        {{ barista.display_name }}
+                      </h3>
+                      <span v-if="barista.role === 'admin'" class="badge badge-warning badge-xs">Admin</span>
+                    </div>
+                    <div class="text-xs text-base-content/75">@{{ barista.username }}</div>
+                    <div class="text-[11px] text-base-content/60 mt-0.5">
+                      {{ barista.completed_shifts }} {{ barista.completed_shifts === 1 ? 'café preparado' : 'cafés preparados' }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Media General de Estrellas -->
+                <div class="bg-base-200/70 border border-base-300 rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-1">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-base-content/70">
+                    Media General del Café
+                  </span>
+                  <div v-if="barista.average_rating" class="space-y-1">
+                    <div class="text-3xl font-black font-mono text-amber-500 flex items-center justify-center gap-1.5">
+                      <span>{{ barista.average_rating }}</span>
+                      <span class="text-lg font-normal text-base-content/50">/ 5.0</span>
+                    </div>
+                    <StarRating :modelValue="barista.average_rating" :readonly="true" :showValue="false" size="md" />
+                    <span class="text-xs text-base-content/70 font-medium block">
+                      Basado en {{ barista.total_reviews }} {{ barista.total_reviews === 1 ? 'opinión' : 'opiniones' }}
+                    </span>
+                  </div>
+                  <div v-else class="py-2 text-center text-xs text-base-content/60 italic">
+                    Aún no tiene calificaciones registradas
+                  </div>
+                </div>
+
+                <!-- Rating Distribution Bars -->
+                <div class="space-y-1 bg-base-200/30 p-3 rounded-xl border border-base-200 text-xs">
+                  <div
+                    v-for="star in [5, 4, 3, 2, 1]"
+                    :key="star"
+                    class="flex items-center gap-2"
+                  >
+                    <span class="w-7 font-mono font-bold text-right text-base-content/80 text-[11px]">{{ star }} ⭐</span>
+                    <progress
+                      class="progress progress-warning flex-1 h-1.5"
+                      :value="barista.rating_distribution?.[star] || 0"
+                      :max="barista.total_reviews || 1"
+                    ></progress>
+                    <span class="w-5 font-mono text-right text-[10px] text-base-content/60">
+                      {{ barista.rating_distribution?.[star] || 0 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Action Footer -->
+              <div class="p-4 pt-0 space-y-2">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline btn-primary w-full rounded-xl gap-2 font-semibold transition-transform active:scale-95"
+                  @click="openBaristaHistory(barista.id)"
+                >
+                  <span>💬</span>
+                  <span>Ver Todos sus Comentarios ({{ barista.total_reviews }})</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- SUB-VISTA 2: CALIFICACIÓN INDIVIDUAL DE CADA CAFÉ     -->
+        <!-- ===================================================== -->
+        <div v-else-if="reviewsSubTab === 'individual'" class="space-y-4">
+          <div v-if="filteredIndividualCoffees.length > 0" class="space-y-4">
+            <div
+              v-for="coffee in filteredIndividualCoffees"
+              :key="coffee.shift_id"
+              class="card bg-base-100 shadow-sm border border-base-300 hover:border-base-400 transition-all"
+            >
+              <div class="card-body p-4 sm:p-5 space-y-4">
+                <!-- Header del Café: Fecha, Barista y Calificación Individual -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-base-200 pb-3">
+                  <div class="flex items-center gap-3">
+                    <UserAvatar
+                      :name="coffee.barista.display_name"
+                      :size="44"
+                      :variant="coffee.barista.avatar_variant || 'beam'"
+                      :colors="coffee.barista.avatar_palette"
+                    />
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="font-bold text-base">{{ coffee.barista.display_name }}</span>
+                        <span class="text-xs text-base-content/75">@{{ coffee.barista.username }}</span>
+                      </div>
+                      <div class="text-xs text-base-content/80 font-medium">
+                        Café preparado el <strong>{{ formatDateHuman(coffee.shift_date) }}</strong>
+                        <span v-if="coffee.notes" class="italic ml-1 text-base-content/60">"{{ coffee.notes }}"</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Calificación Individual de este Café -->
+                  <div class="flex items-center gap-3 bg-base-200/60 px-3.5 py-2 rounded-2xl border border-base-300 self-start sm:self-auto">
+                    <div class="text-right">
+                      <div class="text-[10px] uppercase font-bold text-base-content/70 tracking-wider">
+                        Calificación Individual
+                      </div>
+                      <div class="font-mono font-black text-amber-500 text-lg flex items-center justify-end gap-1">
+                        <span>{{ coffee.average_rating ? coffee.average_rating : '-' }}</span>
+                        <span class="text-xs font-normal text-base-content/50">/ 5.0</span>
+                      </div>
+                    </div>
+                    <StarRating :modelValue="coffee.average_rating" :readonly="true" :showValue="false" size="sm" />
+                    <button
+                      type="button"
+                      class="btn btn-xs btn-warning rounded-lg font-semibold ml-1"
+                      @click="openShiftReviewModal({ id: coffee.shift_id, shift_date: coffee.shift_date, assigned_user_id: coffee.barista.id })"
+                    >
+                      ⭐ Calificar
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Lista de Comentarios Dejados para este Café Específico -->
+                <div class="space-y-2">
+                  <div class="text-xs font-bold uppercase tracking-wider text-base-content/70 flex items-center justify-between">
+                    <span>Comentarios recibidos en esta preparación:</span>
+                    <span class="badge badge-sm badge-ghost">{{ coffee.reviews?.length || 0 }}</span>
+                  </div>
+
+                  <div v-if="coffee.reviews?.length" class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <div
+                      v-for="rev in coffee.reviews"
+                      :key="rev.id"
+                      class="bg-base-200/40 border border-base-300/80 rounded-xl p-3 space-y-1.5"
+                    >
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                          <UserAvatar
+                            :name="rev.reviewer.display_name"
+                            :size="24"
+                            :variant="rev.reviewer.avatar_variant || 'beam'"
+                            :colors="rev.reviewer.avatar_palette"
+                          />
+                          <span class="font-bold text-xs">{{ rev.reviewer.display_name }}</span>
+                        </div>
+                        <span class="font-mono font-bold text-amber-500 text-xs bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                          {{ rev.rating }} ⭐
+                        </span>
+                      </div>
+                      <p v-if="rev.comment" class="text-xs text-base-content/90 italic pl-1 border-l-2 border-amber-400">
+                        "{{ rev.comment }}"
+                      </p>
+                      <span v-else class="text-[11px] text-base-content/50 italic pl-1 block">
+                        Puntuó sin comentario
+                      </span>
+                    </div>
+                  </div>
+
+                  <div v-else class="text-xs text-base-content/60 italic p-3 bg-base-200/30 rounded-xl border border-dashed border-base-300 text-center">
+                    Aún nadie ha calificado este café. ¡Sé el primero en darle una puntuación!
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="card bg-base-100 p-8 text-center space-y-2 border border-base-300">
+            <span class="text-4xl">☕</span>
+            <h3 class="font-bold text-base">No hay cafés registrados para este filtro</h3>
+            <p class="text-xs text-base-content/75">
+              Cuando un turno de café se marque como listo en el calendario, aparecerá aquí su calificación individual.
+            </p>
+          </div>
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- SUB-VISTA 3: MURO DE TODOS LOS COMENTARIOS            -->
+        <!-- ===================================================== -->
+        <div v-else-if="reviewsSubTab === 'comments'" class="space-y-4">
+          <div v-if="filteredAllComments.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              v-for="rev in filteredAllComments"
+              :key="rev.id"
+              class="card bg-base-100 shadow-sm border border-base-300 hover:shadow-md transition-all flex flex-col justify-between"
+            >
+              <div class="card-body p-4 sm:p-5 space-y-3">
+                <!-- Header: Quien comentó y Nota -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <UserAvatar
+                      :name="rev.reviewer.display_name"
+                      :size="32"
+                      :variant="rev.reviewer.avatar_variant || 'beam'"
+                      :colors="rev.reviewer.avatar_palette"
+                    />
+                    <div>
+                      <span class="font-bold text-xs block leading-tight">{{ rev.reviewer.display_name }}</span>
+                      <span class="text-[10px] text-base-content/60">@{{ rev.reviewer.username }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1 font-mono font-bold text-amber-500 text-sm bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20">
+                    <span>{{ rev.rating }}</span>
+                    <span>⭐</span>
+                  </div>
+                </div>
+
+                <!-- Comentario -->
+                <div class="bg-base-200/50 p-3 rounded-xl border border-base-200">
+                  <p v-if="rev.comment" class="text-xs text-base-content/90 italic">
+                    "{{ rev.comment }}"
+                  </p>
+                  <span v-else class="text-xs text-base-content/50 italic">
+                    Calificación otorgada sin comentario escrito.
+                  </span>
+                </div>
+
+                <!-- Footer: Café de quién y fecha -->
+                <div class="pt-1 border-t border-base-200 flex items-center justify-between text-[11px] text-base-content/75">
+                  <div class="flex items-center gap-1.5">
+                    <span>☕ Café de</span>
+                    <strong class="text-base-content">{{ rev.barista.display_name }}</strong>
+                  </div>
+                  <span>{{ formatDateHuman(rev.shift_date) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="card bg-base-100 p-8 text-center space-y-2 border border-base-300">
+            <span class="text-4xl">💬</span>
+            <h3 class="font-bold text-base">Aún no hay comentarios para mostrar</h3>
+            <p class="text-xs text-base-content/75">
+              Los comentarios que dejen los integrantes aparecerán aquí en tiempo real.
+            </p>
+          </div>
+        </div>
+      </section>
       </Transition>
     </main>
 
@@ -1696,14 +2186,320 @@
         </div>
       </div>
     </dialog>
+
+    <!-- ===================================================== -->
+    <!-- MODAL: CALIFICAR Y VER COMENTARIOS DE UN TURNO DE CAFÉ -->
+    <!-- ===================================================== -->
+    <dialog class="modal" :class="{ 'modal-open': shiftReviewModal.open }">
+      <div class="modal-box max-w-lg w-[95%] sm:w-full rounded-3xl p-5 sm:p-6 shadow-2xl animate__animated animate__zoomIn animate__faster">
+        <!-- Header -->
+        <div class="flex items-start justify-between gap-3 border-b border-base-200 pb-3">
+          <div class="flex items-center gap-3">
+            <UserAvatar
+              v-if="shiftReviewModal.shiftData?.shift?.barista"
+              :name="shiftReviewModal.shiftData.shift.barista.display_name"
+              :size="44"
+              :variant="shiftReviewModal.shiftData.shift.barista.avatar_variant || 'beam'"
+              :colors="shiftReviewModal.shiftData.shift.barista.avatar_palette"
+            />
+            <div>
+              <h3 class="font-bold text-lg flex items-center gap-1.5 leading-tight">
+                <span>☕ Café de {{ shiftReviewModal.shiftData?.shift?.barista?.display_name }}</span>
+              </h3>
+              <p class="text-xs text-base-content/75 font-medium">
+                {{ shiftReviewModal.shift ? formatDateHuman(shiftReviewModal.shift.shift_date) : '' }}
+                <span v-if="shiftReviewModal.shiftData?.average_rating" class="ml-1.5 font-bold text-amber-500 font-mono">
+                  ⭐ {{ shiftReviewModal.shiftData.average_rating }} / 5.0 ({{ shiftReviewModal.shiftData.reviews_count }})
+                </span>
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-circle btn-ghost"
+            @click="shiftReviewModal.open = false"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div v-if="shiftReviewModal.loading" class="py-12 flex flex-col items-center justify-center gap-2">
+          <span class="loading loading-spinner loading-md text-primary"></span>
+          <span class="text-xs text-base-content/70">Cargando opiniones del café...</span>
+        </div>
+
+        <div v-else class="space-y-5 pt-3">
+          <!-- Rating Form (Only if current user is not the barista) -->
+          <div
+            v-if="shiftReviewModal.shiftData?.can_rate"
+            class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 space-y-3"
+          >
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                {{ shiftReviewModal.isEditing ? '✏️ Actualizar tu Calificación' : '⭐ Deja tu Calificación' }}
+              </span>
+              <span v-if="shiftReviewModal.isEditing" class="badge badge-warning badge-xs">
+                Ya calificado
+              </span>
+            </div>
+
+            <!-- Star Rating Input with half-stars and quick tap pills -->
+            <div class="space-y-1">
+              <label class="label py-0">
+                <span class="label-text text-xs font-semibold">¿Qué puntuación le das a este café? (0.5 a 5.0 ⭐)</span>
+              </label>
+              <StarRating
+                v-model="shiftReviewModal.rating"
+                :readonly="false"
+                :showPills="true"
+                size="lg"
+              />
+            </div>
+
+            <!-- Comment Input -->
+            <div class="form-control">
+              <label class="label py-1">
+                <span class="label-text text-xs font-semibold">Comentario u opinión (opcional)</span>
+              </label>
+              <textarea
+                v-model="shiftReviewModal.comment"
+                class="textarea textarea-bordered textarea-sm w-full h-20"
+                placeholder="Ej. ¡Quedó perfecto en su punto de azúcar y bien caliente!"
+                maxlength="500"
+              ></textarea>
+              <div class="label py-0.5 justify-end">
+                <span class="label-text-alt text-[10px] text-base-content/60">
+                  {{ shiftReviewModal.comment.length }}/500
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-warning btn-sm w-full gap-2 font-bold shadow-xs transition-transform active:scale-95"
+              :disabled="shiftReviewModal.submitting"
+              @click="submitShiftReview"
+            >
+              <span v-if="shiftReviewModal.submitting" class="loading loading-spinner loading-xs"></span>
+              <span>{{ shiftReviewModal.isEditing ? 'Actualizar mi Calificación' : 'Enviar Calificación ⭐' }}</span>
+            </button>
+          </div>
+
+          <!-- Barista self banner -->
+          <div
+            v-else-if="shiftReviewModal.shift?.assigned_user_id === currentUser?.id"
+            class="bg-info/10 border border-info/30 rounded-2xl p-3 text-xs text-base-content/85 flex items-center gap-2.5"
+          >
+            <span class="text-xl">☕</span>
+            <span>¡Este fue tu turno de café! Aquí puedes leer las valoraciones y comentarios que tus compañeros te han dejado.</span>
+          </div>
+
+          <!-- Reviews List for this shift -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-xs uppercase tracking-wider text-base-content/75 flex items-center justify-between">
+              <span>Opiniones de los compañeros</span>
+              <span class="badge badge-sm badge-ghost">{{ shiftReviewModal.shiftData?.reviews?.length || 0 }}</span>
+            </h4>
+
+            <div
+              v-if="shiftReviewModal.shiftData?.reviews?.length"
+              class="space-y-2.5 max-h-60 overflow-y-auto pr-1"
+            >
+              <div
+                v-for="rev in shiftReviewModal.shiftData.reviews"
+                :key="rev.id"
+                class="border border-base-200 rounded-xl p-3 bg-base-100 shadow-2xs space-y-1.5"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <UserAvatar
+                      :name="rev.reviewer.display_name"
+                      :size="26"
+                      :variant="rev.reviewer.avatar_variant || 'beam'"
+                      :colors="rev.reviewer.avatar_palette"
+                    />
+                    <div>
+                      <span class="font-bold text-xs block leading-tight">{{ rev.reviewer.display_name }}</span>
+                      <span class="text-[10px] text-base-content/60">@{{ rev.reviewer.username }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1 font-mono font-bold text-amber-500 text-xs">
+                    <span>{{ rev.rating }}</span>
+                    <span>⭐</span>
+                  </div>
+                </div>
+
+                <p v-if="rev.comment" class="text-xs text-base-content/90 pl-1 border-l-2 border-base-300">
+                  "{{ rev.comment }}"
+                </p>
+                <span v-else class="text-[11px] text-base-content/50 italic block pl-1">
+                  Sin comentario adicional
+                </span>
+              </div>
+            </div>
+
+            <div v-else class="py-6 text-center text-xs text-base-content/60 italic border border-dashed border-base-300 rounded-2xl">
+              Aún no hay opiniones para este café. ¡Sé el primero en calificarlo!
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-action mt-4">
+          <button type="button" class="btn btn-sm btn-ghost" @click="shiftReviewModal.open = false">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- ===================================================== -->
+    <!-- MODAL: HISTORIAL Y COMENTARIOS DEL BARISTA            -->
+    <!-- ===================================================== -->
+    <dialog class="modal" :class="{ 'modal-open': baristaHistoryModal.open }">
+      <div class="modal-box max-w-xl w-[95%] sm:w-full rounded-3xl p-5 sm:p-6 shadow-2xl animate__animated animate__zoomIn animate__faster">
+        <!-- Header -->
+        <div class="flex items-start justify-between gap-3 border-b border-base-200 pb-3">
+          <div v-if="baristaHistoryModal.data?.barista" class="flex items-center gap-3.5">
+            <UserAvatar
+              :name="baristaHistoryModal.data.barista.display_name"
+              :size="52"
+              :variant="baristaHistoryModal.data.barista.avatar_variant || 'beam'"
+              :colors="baristaHistoryModal.data.barista.avatar_palette"
+            />
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-lg">{{ baristaHistoryModal.data.barista.display_name }}</h3>
+                <span v-if="baristaHistoryModal.data.barista.role === 'admin'" class="badge badge-warning badge-xs">Admin</span>
+              </div>
+              <p class="text-xs text-base-content/75">
+                @{{ baristaHistoryModal.data.barista.username }} · {{ baristaHistoryModal.data.barista.completed_shifts }} cafés preparados
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm btn-circle btn-ghost"
+            @click="baristaHistoryModal.open = false"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div v-if="baristaHistoryModal.loading" class="py-12 flex flex-col items-center justify-center gap-2">
+          <span class="loading loading-spinner loading-md text-primary"></span>
+          <span class="text-xs text-base-content/70">Cargando historial del barista...</span>
+        </div>
+
+        <div v-else-if="baristaHistoryModal.data" class="space-y-5 pt-3">
+          <!-- Summary Card with General Average & Distribution -->
+          <div class="bg-base-200/70 border border-base-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-5">
+            <!-- Left: Average Rating -->
+            <div class="flex flex-col items-center justify-center text-center sm:border-r border-base-300 sm:pr-5 min-w-[130px]">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-base-content/70">Media General</span>
+              <div class="text-4xl font-black font-mono text-amber-500 my-1">
+                {{ baristaHistoryModal.data.barista.average_rating ? baristaHistoryModal.data.barista.average_rating : '-' }}
+              </div>
+              <StarRating
+                :modelValue="baristaHistoryModal.data.barista.average_rating"
+                :readonly="true"
+                :showValue="false"
+                size="sm"
+              />
+              <span class="text-[11px] text-base-content/70 mt-1">
+                {{ baristaHistoryModal.data.barista.total_reviews }} {{ baristaHistoryModal.data.barista.total_reviews === 1 ? 'opinión' : 'opiniones' }}
+              </span>
+            </div>
+
+            <!-- Right: Rating Distribution Bars -->
+            <div class="flex-1 w-full space-y-1">
+              <div
+                v-for="star in [5, 4, 3, 2, 1]"
+                :key="star"
+                class="flex items-center gap-2 text-xs"
+              >
+                <span class="w-8 font-mono font-bold text-right text-base-content/80">{{ star }} ⭐</span>
+                <progress
+                  class="progress progress-warning flex-1 h-2"
+                  :value="baristaHistoryModal.data.barista.rating_distribution?.[star] || 0"
+                  :max="baristaHistoryModal.data.barista.total_reviews || 1"
+                ></progress>
+                <span class="w-6 font-mono text-right text-[11px] text-base-content/60">
+                  {{ baristaHistoryModal.data.barista.rating_distribution?.[star] || 0 }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- All Comments History List -->
+          <div class="space-y-3">
+            <h4 class="font-bold text-xs uppercase tracking-wider text-base-content/75 flex items-center justify-between">
+              <span>Historial de Comentarios de Café</span>
+              <span class="badge badge-sm badge-ghost">{{ baristaHistoryModal.data.reviews?.length || 0 }}</span>
+            </h4>
+
+            <div
+              v-if="baristaHistoryModal.data.reviews?.length"
+              class="space-y-3 max-h-80 overflow-y-auto pr-1"
+            >
+              <div
+                v-for="rev in baristaHistoryModal.data.reviews"
+                :key="rev.id"
+                class="border border-base-200 rounded-xl p-3.5 bg-base-100 shadow-2xs space-y-2 hover:border-base-300 transition-colors"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <UserAvatar
+                      :name="rev.reviewer.display_name"
+                      :size="30"
+                      :variant="rev.reviewer.avatar_variant || 'beam'"
+                      :colors="rev.reviewer.avatar_palette"
+                    />
+                    <div>
+                      <span class="font-bold text-xs block leading-tight">{{ rev.reviewer.display_name }}</span>
+                      <span class="text-[10px] text-base-content/60">
+                        Turno del {{ formatDateHuman(rev.shift_date) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1 font-mono font-bold text-amber-500 text-xs bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                    <span>{{ rev.rating }}</span>
+                    <span>⭐</span>
+                  </div>
+                </div>
+
+                <p v-if="rev.comment" class="text-xs text-base-content/90 pl-2 border-l-2 border-amber-400">
+                  "{{ rev.comment }}"
+                </p>
+                <span v-else class="text-[11px] text-base-content/50 italic block pl-2">
+                  Puntuado sin comentario adicional
+                </span>
+              </div>
+            </div>
+
+            <div v-else class="py-8 text-center text-xs text-base-content/60 italic border border-dashed border-base-300 rounded-2xl">
+              Este barista todavía no tiene comentarios registrados.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-action mt-4">
+          <button type="button" class="btn btn-sm btn-ghost" @click="baristaHistoryModal.open = false">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 const router = useRouter()
+const route = useRoute()
 const theme = useState<string>('sede_cafe_theme', () => 'cupcake')
 
-const activeTab = ref<'schedule' | 'swaps' | 'equity' | 'users'>('schedule')
+const activeTab = ref<'schedule' | 'swaps' | 'equity' | 'users' | 'reviews'>('schedule')
 const feedbackMsg = ref('')
 const feedbackType = ref<'success' | 'error'>('success')
 const celebratingCoffee = ref(false)
@@ -1865,6 +2661,23 @@ const myIncomingPendingSwaps = computed(() =>
 const actionableSwapsCount = computed(() => {
   if (isAdmin.value) return pendingSwaps.value.length
   return myIncomingPendingSwaps.value.length
+})
+
+// 4. Reviews State
+const { data: reviewsSummary, refresh: refreshReviewsSummary } = await useFetch('/api/reviews/summary')
+const reviewsSubTab = ref<'baristas' | 'individual' | 'comments'>('baristas')
+const reviewsFilterBarista = ref<number | 'all'>('all')
+
+const filteredIndividualCoffees = computed(() => {
+  const list = reviewsSummary.value?.individual_coffees || []
+  if (reviewsFilterBarista.value === 'all') return list
+  return list.filter((c: any) => c.barista.id === reviewsFilterBarista.value)
+})
+
+const filteredAllComments = computed(() => {
+  const list = reviewsSummary.value?.all_comments || []
+  if (reviewsFilterBarista.value === 'all') return list
+  return list.filter((c: any) => c.barista.id === reviewsFilterBarista.value)
 })
 
 const minActiveLoad = computed(() => {
@@ -2293,6 +3106,110 @@ async function savePinChange() {
     showFeedback(err?.data?.statusMessage || 'Error al actualizar el PIN.', 'error')
   }
 }
+
+// Shift Review Modal & Handlers
+const shiftReviewModal = reactive({
+  open: false,
+  loading: false,
+  submitting: false,
+  shift: null as any,
+  shiftData: null as any,
+  rating: 5.0,
+  comment: '',
+  isEditing: false
+})
+
+async function openShiftReviewModal(shift: any) {
+  shiftReviewModal.shift = shift
+  shiftReviewModal.shiftData = null
+  shiftReviewModal.rating = 5.0
+  shiftReviewModal.comment = ''
+  shiftReviewModal.isEditing = false
+  shiftReviewModal.loading = true
+  shiftReviewModal.open = true
+
+  try {
+    const data: any = await $fetch(`/api/reviews/shift/${shift.id}`)
+    shiftReviewModal.shiftData = data
+    if (data?.my_review) {
+      shiftReviewModal.rating = data.my_review.rating
+      shiftReviewModal.comment = data.my_review.comment || ''
+      shiftReviewModal.isEditing = true
+    }
+  } catch (err: any) {
+    showFeedback(err?.data?.statusMessage || 'Error al cargar las opiniones del café.', 'error')
+  } finally {
+    shiftReviewModal.loading = false
+  }
+}
+
+async function submitShiftReview() {
+  if (!shiftReviewModal.shift) return
+  shiftReviewModal.submitting = true
+
+  try {
+    await $fetch('/api/reviews', {
+      method: 'POST',
+      body: {
+        shift_id: shiftReviewModal.shift.id,
+        rating: shiftReviewModal.rating,
+        comment: shiftReviewModal.comment
+      }
+    })
+
+    showFeedback(
+      shiftReviewModal.isEditing
+        ? '¡Tu calificación ha sido actualizada! ⭐'
+        : '¡Gracias por calificar el café! ⭐'
+    )
+
+    // Reload shift data inside modal and refresh page data
+    const [updatedShiftData] = await Promise.all([
+      $fetch(`/api/reviews/shift/${shiftReviewModal.shift.id}`).catch(() => null),
+      refreshWeek(),
+      refreshReviewsSummary()
+    ])
+
+    if (updatedShiftData) {
+      shiftReviewModal.shiftData = updatedShiftData
+      shiftReviewModal.isEditing = true
+    }
+  } catch (err: any) {
+    showFeedback(err?.data?.statusMessage || 'Error al enviar la calificación.', 'error')
+  } finally {
+    shiftReviewModal.submitting = false
+  }
+}
+
+// Barista History Modal & Handlers
+const baristaHistoryModal = reactive({
+  open: false,
+  loading: false,
+  baristaId: 0,
+  data: null as any
+})
+
+async function openBaristaHistory(baristaId: number) {
+  baristaHistoryModal.baristaId = baristaId
+  baristaHistoryModal.data = null
+  baristaHistoryModal.loading = true
+  baristaHistoryModal.open = true
+
+  try {
+    const data: any = await $fetch(`/api/reviews/user/${baristaId}`)
+    baristaHistoryModal.data = data
+  } catch (err: any) {
+    showFeedback(err?.data?.statusMessage || 'Error al cargar el historial del barista.', 'error')
+  } finally {
+    baristaHistoryModal.loading = false
+  }
+}
+
+onMounted(() => {
+  if (route.query.tab && ['schedule', 'swaps', 'equity', 'users', 'reviews'].includes(String(route.query.tab))) {
+    activeTab.value = String(route.query.tab) as any
+  }
+})
 
 async function handleLogout() {
   await $fetch('/api/auth/logout', { method: 'POST' })

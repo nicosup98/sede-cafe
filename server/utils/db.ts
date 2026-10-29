@@ -125,7 +125,44 @@ async function initSchema(db: Client) {
       value TEXT NOT NULL,
       updated_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS coffee_reviews (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      shift_id INTEGER NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
+      target_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reviewer_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      rating REAL NOT NULL,
+      comment TEXT DEFAULT '',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(shift_id, reviewer_user_id)
+    );
   `)
+
+  // Safe migrations for newly added tables & columns
+  try {
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS coffee_reviews (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        shift_id INTEGER NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
+        target_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        reviewer_user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        rating REAL NOT NULL,
+        comment TEXT DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+        UNIQUE(shift_id, reviewer_user_id)
+      )
+    `)
+  } catch {
+    // Table already exists
+  }
+  try {
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_coffee_reviews_shift ON coffee_reviews(shift_id)`)
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_coffee_reviews_target_user ON coffee_reviews(target_user_id)`)
+  } catch {
+    // Indexes already exist
+  }
 
   // Safe migrations for newly added columns
   try {
